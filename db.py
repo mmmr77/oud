@@ -1,7 +1,16 @@
 import sqlite3
 
 
-class DataBase(Singleton):
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class DataBase(metaclass=Singleton):
     def __init__(self):
         self.connection = sqlite3.connect('ganjoor.s3db')
         self.cursor = self.connection.cursor()
@@ -10,10 +19,16 @@ class DataBase(Singleton):
         self.cursor.close()
 
     def get_poets(self):
-        command = 'SELECT * FROM poet'
+        command = 'SELECT id, name, cat_id FROM poet'
         self.cursor.execute(command)
         poets = self.cursor.fetchall()
         return poets
+
+    def get_poet(self, poet_id):
+        command = 'SELECT * FROM poet WHERE id=?'
+        self.cursor.execute(command, (poet_id,))
+        poet = self.cursor.fetchone()
+        return poet
 
     def get_poem(self, poem_id):
         command = "SELECT * FROM verse WHERE poem_id=? ORDER BY vorder"

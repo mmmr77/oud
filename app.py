@@ -1,6 +1,7 @@
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler
 from command import Command
+from poet import Poet
 
 
 class Application:
@@ -12,6 +13,9 @@ class Application:
         self.application.run_polling()
 
     def add_handlers(self):
+        poets_handler = CommandHandler('poets', Poet.poets_menu)
+        self.application.add_handler(poets_handler)
+
         commands_handler = MessageHandler(filters.COMMAND, self.command_handler)
         self.application.add_handler(commands_handler)
 
