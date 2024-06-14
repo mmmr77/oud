@@ -37,7 +37,7 @@ class DataBase(metaclass=Singleton):
         return poem
 
     def get_poet_categories(self, poet_id):
-        command = 'SELECT * FROM cat WHERE poet_id=?'
+        command = 'SELECT * FROM cat WHERE poet_id=? AND parent_id!=0'
         self.cursor.execute(command, (poet_id,))
         categories = self.cursor.fetchall()
         return categories

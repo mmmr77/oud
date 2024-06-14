@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler, CallbackQueryHandler
 from command import Command
 from poet import Poet
 
@@ -15,6 +15,9 @@ class Application:
     def add_handlers(self):
         poets_handler = CommandHandler('poets', Poet.poets_menu)
         self.application.add_handler(poets_handler)
+
+        poet_details = CallbackQueryHandler(Poet.poet_details, r'^poet:\d+$')
+        self.application.add_handler(poet_details)
 
         commands_handler = MessageHandler(filters.COMMAND, self.command_handler)
         self.application.add_handler(commands_handler)
