@@ -1,1 +1,2 @@
 DEBUG = True
+POEM_PER_PAGE = 60

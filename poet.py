@@ -35,7 +35,7 @@ class Poet:
         text = const.POET.format(poet=poet[1], description=poet[3])
         buttons = list()
         for category in categories:
-            button = [InlineKeyboardButton(category[2], callback_data=f'category:{category[0]}')]
+            button = [InlineKeyboardButton(category[2], callback_data=f'category:{category[0]}:0')]
             buttons.append(button)
         menu = InlineKeyboardMarkup(buttons)
         await context.bot.send_message(
