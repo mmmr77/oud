@@ -62,6 +62,13 @@ class DataBase(metaclass=Singleton):
         count = self.cursor.fetchone()
         return count
 
+    def search_poem(self, text: str):
+        command = f"SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
+                  f"JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text LIKE '%{text}%'"
+        self.cursor.execute(command)
+        poems = self.cursor.fetchall()
+        return poems
+
     def insert_opinion(self, *args):
         # TODO
         command = 'INSERT INTO opinion VALUES ...'

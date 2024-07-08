@@ -4,6 +4,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filte
 from command import Command
 from poem import Poem
 from poet import Poet
+from search import Search
 
 
 class Application:
@@ -26,11 +27,14 @@ class Application:
         category_handler = CallbackQueryHandler(Poem.category_poems, r'^category:\d+:\d+$')
         self.application.add_handler(category_handler)
 
-        poem_handler = CallbackQueryHandler(Poem.show_poem, r'^poem:\d+$')
+        poem_handler = CallbackQueryHandler(Poem.show_poem_by_id, r'^poem:\d+$')
         self.application.add_handler(poem_handler)
 
         commands_handler = MessageHandler(filters.COMMAND, self.command_handler)
         self.application.add_handler(commands_handler)
+
+        search_handler = MessageHandler(filters.TEXT, Search.search_poems)
+        self.application.add_handler(search_handler)
 
     async def command_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = Command.get_command_response(update.message.text[1:])

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS user (
 )
 """
 
-# TODO primary key, foregn key, ...
+# TODO primary key, foreign key, ...
 OPINION_TABLE = """
 CREATE TABLE IF NOT EXISTS opinion (
     id int,
@@ -18,10 +18,6 @@ CREATE TABLE IF NOT EXISTS opinion (
     message text,
     creation_datatime datetime
 )
-"""
-
-POET_NAME_IN_POEM = """
-ALTER TABLE POEM ADD poet_name varchar(255)
 """
 
 

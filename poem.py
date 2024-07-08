@@ -13,7 +13,7 @@ class Poem:
         return const.POEM.format(poem=poem, url=url, title=title)
 
     @staticmethod
-    async def show_poem(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
         poem_id = query.data.split(':')[1]
