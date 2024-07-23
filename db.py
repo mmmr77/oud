@@ -75,8 +75,13 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
+    def find_user_by_id(self, id_):
+        command = 'SELECT * FROM user WHERE id=?'
+        self.cursor.execute(command, (id_,))
+        user = self.cursor.fetchone()
+        return user
+
     def insert_user(self, *args):
-        # TODO
-        command = 'INSERT INTO user VALUES ...'
+        command = 'INSERT INTO user VALUES (?, ?, ?, ?, ?)'
         self.cursor.execute(command, args)
         self.connection.commit()

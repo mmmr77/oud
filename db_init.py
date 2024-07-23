@@ -6,17 +6,17 @@ CREATE TABLE IF NOT EXISTS user (
     first_name varchar(255),
     last_name varchar(255),
     username varchar(255),
-    creation_datatime datetime,
-    last_interaction_datetime datetime
+    creation_datatime datetime
 )
 """
 
 OPINION_TABLE = """
 CREATE TABLE IF NOT EXISTS opinion (
     id int NOT NULL PRIMARY KEY,
-    user_id int REFERENCES user(id),
+    user_id int,
     message text,
-    creation_datatime datetime
+    creation_datatime datetime,
+    FOREIGN KEY(user_id) REFERENCES user(id)
 )
 """
 

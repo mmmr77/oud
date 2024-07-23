@@ -17,6 +17,7 @@ OPINION = """
 
 HELP = """
 برای لیست شاعران از دستور /poets استفاده کنید
+همچنین برای جستجو، عبارت مورد نظر خود را ارسال کنید.
 """
 
 WHY_OUD = """
@@ -57,4 +58,4 @@ NO_RESULT = """
 هیچ نتیجه‌ای یافت نشد
 """
 
-__all__ = ("ABOUT", "START", "OPINION", "HELP", "WHY_OUD")
+__all__ = ("ABOUT", "OPINION", "HELP", "WHY_OUD")

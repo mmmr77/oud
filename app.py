@@ -16,7 +16,8 @@ class Application:
         self.application.run_polling()
 
     def add_handlers(self):
-        # TODO command start: add user to database if it is not
+        start_handler = CommandHandler('start', Command.start)
+        self.application.add_handler(start_handler)
 
         poets_handler = CommandHandler('poets', Poet.poets_menu)
         self.application.add_handler(poets_handler)
@@ -37,5 +38,5 @@ class Application:
         self.application.add_handler(search_handler)
 
     async def command_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        response = Command.get_command_response(update.message.text[1:])
+        response = Command.get_general_commands_response(update.message.text[1:])
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)
