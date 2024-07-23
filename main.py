@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 import setting
 from app import Application
+from db_init import init_database
 
 if __name__ == '__main__':
     load_dotenv()
@@ -18,6 +19,8 @@ if __name__ == '__main__':
         token = os.environ.get("TEST_TOKEN")
     else:
         token = os.environ.get("TOKEN")
+
+    init_database()
 
     application = Application(token)
     application.start_app()

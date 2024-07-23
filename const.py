@@ -53,4 +53,8 @@ COMMAND_NOT_FOUND = """
 دستور داده شده نامعتبر است
 """
 
+NO_RESULT = """
+هیچ نتیجه‌ای یافت نشد
+"""
+
 __all__ = ("ABOUT", "START", "OPINION", "HELP", "WHY_OUD")

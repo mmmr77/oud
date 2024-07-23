@@ -1,7 +1,8 @@
-# TODO primary key, ...
+import sqlite3
+
 USER_TABLE = """
 CREATE TABLE IF NOT EXISTS user (
-    id int NOT NULL UNIQUE,
+    id int NOT NULL UNIQUE PRIMARY KEY,
     first_name varchar(255),
     last_name varchar(255),
     username varchar(255),
@@ -10,21 +11,20 @@ CREATE TABLE IF NOT EXISTS user (
 )
 """
 
-# TODO primary key, foreign key, ...
 OPINION_TABLE = """
 CREATE TABLE IF NOT EXISTS opinion (
-    id int,
-    user_id int,
+    id int NOT NULL PRIMARY KEY,
+    user_id int REFERENCES user(id),
     message text,
     creation_datatime datetime
 )
 """
 
 
-# TODO
-def fill_poet_in_poem_table():
-    pass
-
-
 def init_database():
-    pass
+    connection = sqlite3.connect('ganjoor.s3db')
+    cursor = connection.cursor()
+    cursor.execute(USER_TABLE)
+    cursor.execute(OPINION_TABLE)
+    connection.commit()
+    cursor.close()
