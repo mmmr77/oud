@@ -1,6 +1,6 @@
-from telegram import Update
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler, CallbackQueryHandler
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler, \
+    CallbackQueryHandler, ConversationHandler
+
 from command import Command
 from poem import Poem
 from poet import Poet
@@ -19,6 +19,13 @@ class Application:
         start_handler = CommandHandler('start', Command.start)
         self.application.add_handler(start_handler)
 
+        opinion_handler = ConversationHandler(entry_points=[CommandHandler('opinion', Command.opinion)],
+                                              states={0: [MessageHandler(filters.TEXT & ~filters.Regex(r'^لغو$'),
+                                                                         Command.opinion_response)]},
+                                              fallbacks=[
+                                                  MessageHandler(filters.Regex(r'^لغو$'), Command.opinion_cancel)])
+        self.application.add_handler(opinion_handler)
+
         poets_handler = CommandHandler('poets', Poet.poets_menu)
         self.application.add_handler(poets_handler)
 
@@ -31,12 +38,8 @@ class Application:
         poem_handler = CallbackQueryHandler(Poem.show_poem_by_id, r'^poem:\d+$')
         self.application.add_handler(poem_handler)
 
-        commands_handler = MessageHandler(filters.COMMAND, self.command_handler)
+        commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
         self.application.add_handler(commands_handler)
 
         search_handler = MessageHandler(filters.TEXT, Search.search_poems)
         self.application.add_handler(search_handler)
-
-    async def command_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        response = Command.get_general_commands_response(update.message.text[1:])
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)

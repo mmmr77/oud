@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS user (
 
 OPINION_TABLE = """
 CREATE TABLE IF NOT EXISTS opinion (
-    id int NOT NULL PRIMARY KEY,
+    id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
     user_id int,
     message text,
     creation_datatime datetime,

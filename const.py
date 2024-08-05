@@ -9,10 +9,24 @@ START = """
 برای دسترسی به راهنمای عود از دستور /help استفاده کنید
 """
 
-# TODO maybe i have to add a conversation handler for this?
 OPINION = """
 ممنون از ارسال نظرات‌تون
 لطفا دیدگاه خودتون درباره‌ی عود رو در پیام بعدی ارسال کنید
+در صورتی که منصرف شدید، کلمه‌ی لغو رو ارسال کنید
+"""
+
+OPINION_SUBMIT = """
+پیام شما ثبت شد
+"""
+
+OPINION_CANCEL = """
+ارسال نظر لغو شد
+"""
+
+OPINION_TO_ADMIN = """
+یک پیام از {user}
+
+{text}
 """
 
 HELP = """
@@ -50,7 +64,7 @@ POEM = """
 @oud_poem_bot
 """
 
-COMMAND_NOT_FOUND = """
+INVALID_COMMAND = """
 دستور داده شده نامعتبر است
 """
 

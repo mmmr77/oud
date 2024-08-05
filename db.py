@@ -70,8 +70,7 @@ class DataBase(metaclass=Singleton):
         return poems
 
     def insert_opinion(self, *args):
-        # TODO
-        command = 'INSERT INTO opinion VALUES ...'
+        command = 'INSERT INTO opinion (user_id, message, creation_datatime) VALUES (?, ?, ?)'
         self.cursor.execute(command, args)
         self.connection.commit()
 
