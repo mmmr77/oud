@@ -32,7 +32,7 @@ class Poem:
         category_id = query.data.split(':')[1]
         offset = int(query.data.split(':')[2])
 
-        poems = DataBase().get_category_poems(category_id, offset)
+        poems: list = DataBase().get_category_poems(category_id, offset)
         buttons = list()
         for i in range(0, len(poems), 2):
             row = list()
@@ -40,12 +40,14 @@ class Poem:
                 button = InlineKeyboardButton(poem[2], callback_data=f'poem:{poem[0]}')
                 row.append(button)
             buttons.append(row)
-        buttons.append(
-            [
-                InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - POEM_PER_PAGE}'),
-                InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + POEM_PER_PAGE}')
-            ]
-        )
+
+        last_row = []
+        if offset != 0:
+            last_row.append(InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - POEM_PER_PAGE}'))
+        if len(poems) == POEM_PER_PAGE:
+            last_row.append(InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + POEM_PER_PAGE}'))
+        if last_row:
+            buttons.append(last_row)
         menu = InlineKeyboardMarkup(buttons)
 
         await context.bot.send_message(query.from_user.id, const.POEMS, reply_markup=menu)

@@ -50,7 +50,7 @@ class DataBase(metaclass=Singleton):
         categories = self.cursor.fetchall()
         return categories
 
-    def get_category_poems(self, category_id, offset: int = 0, limit: int = POEM_PER_PAGE):
+    def get_category_poems(self, category_id, offset: int = 0, limit: int = POEM_PER_PAGE) -> list:
         command = 'SELECT * FROM poem WHERE cat_id=? ORDER BY id LIMIT ? OFFSET ?'
         self.cursor.execute(command, (category_id, limit, offset))
         poems = self.cursor.fetchall()
