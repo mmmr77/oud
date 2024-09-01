@@ -44,6 +44,6 @@ class Util:
                 messages.append(Util.format_poem(poem_in_a_single_message, poem_info[1], poem_info[0], poem_info[2]))
                 poem_in_a_single_message = verse
             else:
-                poem_in_a_single_message += verse
+                poem_in_a_single_message += verse + '\n'
         messages.append(Util.format_poem(poem_in_a_single_message, poem_info[1], poem_info[0], poem_info[2]))
         return messages
