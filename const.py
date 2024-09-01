@@ -54,7 +54,6 @@ POET = """
 دسته‌ی مورد نظر خود را انتخاب کنید
 """
 
-# TODO if a poem does not have a url // add poet at the end of the poem (join tables to retrieve poet name?)
 POEM = """
 <a href="{url}">{title}</a>
 
