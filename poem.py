@@ -9,8 +9,8 @@ from setting import POEM_PER_PAGE
 
 class Poem:
     @staticmethod
-    def format_poem(poem, url, title):
-        return const.POEM.format(poem=poem, url=url, title=title)
+    def format_poem(poem, url, title, poet):
+        return const.POEM.format(poem=poem, url=url, title=title, poet=poet)
 
     @staticmethod
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -19,10 +19,10 @@ class Poem:
         poem_id = query.data.split(':')[1]
 
         poem_text = DataBase().get_poem_text(poem_id)
-        poem_text = '\n'.join(map(lambda x: x[3], poem_text))
+        poem_text = '\n'.join(map(lambda x: x[0], poem_text))
         poem_info = DataBase().get_poem_info(poem_id)
 
-        formatted_poem = Poem.format_poem(poem_text, poem_info[3], poem_info[2])
+        formatted_poem = Poem.format_poem(poem_text, poem_info[1], poem_info[0], poem_info[2])
         await context.bot.send_message(query.from_user.id, formatted_poem, parse_mode=ParseMode.HTML)
 
     @staticmethod

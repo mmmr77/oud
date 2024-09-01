@@ -33,13 +33,14 @@ class DataBase(metaclass=Singleton):
         return poet
 
     def get_poem_text(self, poem_id):
-        command = "SELECT * FROM verse WHERE poem_id=? ORDER BY vorder, position"
+        command = "SELECT text FROM verse WHERE poem_id=? ORDER BY vorder, position"
         self.cursor.execute(command, (poem_id,))
         poem = self.cursor.fetchall()
         return poem
 
     def get_poem_info(self, poem_id):
-        command = "SELECT * FROM poem WHERE id=?"
+        command = "SELECT poem.title, poem.url, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
+                  "cat.poet_id=poet.id WHERE poem.id=?"
         self.cursor.execute(command, (poem_id,))
         poem_info = self.cursor.fetchone()
         return poem_info

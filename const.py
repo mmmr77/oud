@@ -60,7 +60,7 @@ POEM = """
 
 {poem}
 
-
+{poet}
 @oud_poem_bot
 """
 
