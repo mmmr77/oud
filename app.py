@@ -29,7 +29,7 @@ class Application:
         poets_handler = CommandHandler('poets', Poet.poets_menu)
         self.application.add_handler(poets_handler)
 
-        poet_details_handler = CallbackQueryHandler(Poet.poet_details, r'^poet:\d+$')
+        poet_details_handler = CallbackQueryHandler(Poet.poet_details, r'^poet:\d+:\d+$')
         self.application.add_handler(poet_details_handler)
 
         category_handler = CallbackQueryHandler(Poem.category_poems, r'^category:\d+:\d+$')

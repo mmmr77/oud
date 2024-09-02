@@ -12,8 +12,8 @@ class Poet:
         buttons = list()
         for i in range(0, len(poets), 3):
             row = list()
-            for poet in poets[i:i+3]:
-                button = InlineKeyboardButton(poet[1], callback_data=f'poet:{poet[0]}')
+            for poet in poets[i:i + 3]:
+                button = InlineKeyboardButton(poet[1], callback_data=f'poet:{poet[0]}:{poet[2]}')
                 row.append(button)
             buttons.append(row)
         menu = InlineKeyboardMarkup(buttons)
@@ -29,17 +29,24 @@ class Poet:
         query = update.callback_query
         await query.answer()
         poet_id = query.data.split(':')[1]
-
+        category_id = int(query.data.split(':')[2])
+        parent_category_id = DataBase().get_parent_category_id(category_id)
         poet = DataBase().get_poet(poet_id)
-        categories = DataBase().get_poet_categories(poet_id)
-        text = const.POET.format(poet=poet[1], description=poet[3])
-        buttons = list()
-        for category in categories:
-            button = [InlineKeyboardButton(category[2], callback_data=f'category:{category[0]}:0')]
-            buttons.append(button)
+
+        categories = DataBase().get_poet_categories(poet_id, category_id)
+        if not categories:
+            buttons = [[InlineKeyboardButton(f"ورود به شعرهای این دسته", callback_data=f'category:{category_id}:0')]]
+        else:
+            buttons = list()
+            for category in categories:
+                button = [InlineKeyboardButton(category[2], callback_data=f'poet:{poet_id}:{category[0]}')]
+                buttons.append(button)
+        if category_id != poet[2]:
+            buttons.append([InlineKeyboardButton("بازگشت", callback_data=f'poet:{poet_id}:{parent_category_id}')])
         menu = InlineKeyboardMarkup(buttons)
-        await context.bot.send_message(
-            query.from_user.id,
-            text,
-            reply_markup=menu
-        )
+
+        if update.effective_message.text == const.POETS.strip():
+            text = const.POET.format(poet=poet[1], description=poet[3])
+            await context.bot.send_message(query.from_user.id, text, reply_markup=menu)
+        else:
+            await update.effective_message.edit_reply_markup(menu)

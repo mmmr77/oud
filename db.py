@@ -45,11 +45,17 @@ class DataBase(metaclass=Singleton):
         poem_info = self.cursor.fetchone()
         return poem_info
 
-    def get_poet_categories(self, poet_id):
-        command = 'SELECT * FROM cat WHERE poet_id=? AND parent_id!=0'
-        self.cursor.execute(command, (poet_id,))
+    def get_poet_categories(self, poet_id, category_id):
+        command = 'SELECT * FROM cat WHERE poet_id=? AND parent_id=?'
+        self.cursor.execute(command, (poet_id, category_id))
         categories = self.cursor.fetchall()
         return categories
+
+    def get_parent_category_id(self, category_id):
+        command = 'SELECT parent_id FROM cat WHERE id=?'
+        self.cursor.execute(command, (category_id,))
+        parent_id = self.cursor.fetchone()
+        return parent_id[0]
 
     def get_category_poems(self, category_id, offset: int = 0, limit: int = POEM_PER_PAGE) -> list:
         command = 'SELECT * FROM poem WHERE cat_id=? ORDER BY id LIMIT ? OFFSET ?'

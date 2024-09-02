@@ -1,6 +1,5 @@
 type hints
 search: show results by poet // highlight (bold) the part that searched for in result
 search results can be too long --> it is fixed now but the bot shows search result in separate messages. is it better to show like next and previous messages?
-in poet categories, i show all categories that belongs to a poet. but maybe a category has a subcategory and i show both
-simin behbahani has no category but she has poems!
-سایه دسته داره اما مثلا توی سیاه مشق چیزی نیست (شاید چون سیاه مشق دسته‌بندی کلیه (برگ توی درخت نیست) و زیر شاخه داره)
+remove "enter this category" somehow!
+check if a non-leaf category will never have poems

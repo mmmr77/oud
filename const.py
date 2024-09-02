@@ -42,6 +42,7 @@ POETS = """
 شاعر مورد نظر خود را انتخاب کنید
 """
 
+# TODO add "{poet} - {category}" at the beginning of the message
 POEMS = """
 شعر مورد نظر خود را انتخاب کنید
 """

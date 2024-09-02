@@ -42,11 +42,15 @@ class Poem:
 
         last_row = []
         if offset != 0:
-            last_row.append(InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - POEM_PER_PAGE}'))
+            last_row.append(
+                InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - POEM_PER_PAGE}'))
         if len(poems) == POEM_PER_PAGE:
-            last_row.append(InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + POEM_PER_PAGE}'))
+            last_row.append(
+                InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + POEM_PER_PAGE}'))
         if last_row:
             buttons.append(last_row)
         menu = InlineKeyboardMarkup(buttons)
-
-        await context.bot.send_message(query.from_user.id, const.POEMS, reply_markup=menu)
+        if update.effective_message.text == const.POEMS.strip():
+            await update.effective_message.edit_reply_markup(menu)
+        else:
+            await context.bot.send_message(query.from_user.id, const.POEMS, reply_markup=menu)
