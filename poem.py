@@ -4,6 +4,7 @@ from telegram.ext import ContextTypes
 
 import const
 from db import DataBase
+from recitation import Recitation
 from setting import POEM_PER_PAGE
 from util import Util
 
@@ -23,6 +24,9 @@ class Poem:
 
         for message in messages:
             await context.bot.send_message(query.from_user.id, message, parse_mode=ParseMode.HTML)
+        if recitation_info := Recitation.get_recitation_info(poem_id):
+            await context.bot.send_audio(query.from_user.id, recitation_info[0], performer=recitation_info[2],
+                                         title=recitation_info[1])
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):

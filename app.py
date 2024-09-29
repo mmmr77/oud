@@ -4,6 +4,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHan
 from command import Command
 from poem import Poem
 from poet import Poet
+from recitation import Recitation
 from search import Search
 
 
@@ -41,5 +42,13 @@ class Application:
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
         self.application.add_handler(commands_handler)
 
+        recitation_data_handler = MessageHandler(filters.TEXT & filters.ChatType.CHANNEL,
+                                                 Recitation.add_recitation_data_to_db)
+        self.application.add_handler(recitation_data_handler)
+
         search_handler = MessageHandler(filters.TEXT, Search.search_poems)
         self.application.add_handler(search_handler)
+
+        recitation_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
+                                                  Recitation.add_recitation_file_id_to_db)
+        self.application.add_handler(recitation_audio_handler)

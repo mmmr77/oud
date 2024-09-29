@@ -1,0 +1,10 @@
+services:
+  oud:
+    image:
+      oud:1.0.0
+    build:
+      context: ./
+    container_name: "oud"
+    restart: always
+    env_file:
+      - ./.env

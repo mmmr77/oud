@@ -91,3 +91,19 @@ class DataBase(metaclass=Singleton):
         command = 'INSERT INTO user VALUES (?, ?, ?, ?, ?)'
         self.cursor.execute(command, args)
         self.connection.commit()
+
+    def insert_recitation_data(self, poem_id, id, title, dnldurl, artist, audio_order, recitation_type):
+        command = 'INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        self.cursor.execute(command, (poem_id, id, title, dnldurl, artist, audio_order, recitation_type))
+        self.connection.commit()
+
+    def add_recitation_file_id(self, file_id, recitation_id):
+        command = 'UPDATE poemsnd SET telegram_file_id=? WHERE id=?'
+        self.cursor.execute(command, (file_id, recitation_id))
+        self.connection.commit()
+
+    def get_recitation(self, poem_id):
+        command = 'SELECT telegram_file_id, title, artist FROM poemsnd WHERE poem_id=? ORDER BY audio_order'
+        self.cursor.execute(command, (poem_id,))
+        recitation = self.cursor.fetchone()
+        return recitation
