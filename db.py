@@ -1,6 +1,6 @@
 import sqlite3
 
-from setting import POEM_PER_PAGE
+from setting import POEM_PER_PAGE, SEARCH_RESULT_PER_PAGE
 
 
 class Singleton(type):
@@ -21,7 +21,7 @@ class DataBase(metaclass=Singleton):
         self.cursor.close()
 
     def get_poets(self):
-        command = 'SELECT id, name, cat_id FROM poet'
+        command = 'SELECT id, name, cat_id FROM poet ORDER BY name'
         self.cursor.execute(command)
         poets = self.cursor.fetchall()
         return poets
@@ -69,12 +69,19 @@ class DataBase(metaclass=Singleton):
         count = self.cursor.fetchone()
         return count
 
-    def search_poem(self, text: str) -> list:
-        command = f"SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
-                  f"JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text LIKE '%{text}%'"
-        self.cursor.execute(command)
+    def search_poem(self, text: str, offset: int, limit: int = SEARCH_RESULT_PER_PAGE) -> list:
+        command = "SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
+                  f"JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text LIKE '%{text}%'" \
+                  "LIMIT ? OFFSET ?"
+        self.cursor.execute(command, (limit, offset))
         poems = self.cursor.fetchall()
         return poems
+
+    def search_count(self, text):
+        command = f"SELECT COUNT(*) FROM verse WHERE verse.text LIKE '%{text}%'"
+        self.cursor.execute(command)
+        count = self.cursor.fetchone()[0]
+        return count
 
     def insert_opinion(self, *args):
         command = 'INSERT INTO opinion (user_id, message, creation_datatime) VALUES (?, ?, ?)'

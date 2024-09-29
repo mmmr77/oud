@@ -72,4 +72,8 @@ NO_RESULT = """
 هیچ نتیجه‌ای یافت نشد
 """
 
+SEARCH_RESULT_COUNT = """
+جستجوی شما {count} نتیجه داشت
+"""
+
 __all__ = ("ABOUT", "OPINION", "HELP", "WHY_OUD")

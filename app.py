@@ -46,8 +46,11 @@ class Application:
                                                  Recitation.add_recitation_data_to_db)
         self.application.add_handler(recitation_data_handler)
 
-        search_handler = MessageHandler(filters.TEXT, Search.search_poems)
-        self.application.add_handler(search_handler)
+        search_message_handler = MessageHandler(filters.TEXT, Search.search_poems)
+        self.application.add_handler(search_message_handler)
+
+        search_query_handler = CallbackQueryHandler(Search.search_poems, r'^search:.+:\d+$')
+        self.application.add_handler(search_query_handler)
 
         recitation_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
                                                   Recitation.add_recitation_file_id_to_db)

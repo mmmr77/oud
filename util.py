@@ -5,18 +5,15 @@ import const
 
 class Util:
     @staticmethod
-    def classify_search_results(results: list[tuple]) -> list:
-        messages = list()
+    def trim_search_results(results: list[tuple], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
-            a = (i + 1, result[0], digits.convert_to_fa(i + 1) + '. ' + result[1] + ' - ' + result[3] + '\n' + result[2])
-            if len(a[2]) + sum(map(lambda x: len(x[2]), message)) < 3950:
+            a = (i + 1 + offset, result[0], digits.convert_to_fa(i + 1 + offset) + '. ' + result[1] + ' - ' + result[3] + '\n' + result[2])
+            if len(a[2]) + sum(map(lambda x: len(x[2]), message)) + 2 * len(message) <= 4096:
                 message.append(a)
             else:
-                messages.append(message)
-                message = [a]
-        messages.append(message)
-        return messages
+                return message
+        return message
 
     @staticmethod
     def break_long_verses(poem_text: list[tuple]) -> list:
