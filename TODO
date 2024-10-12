@@ -3,3 +3,4 @@ search: show results by poet // highlight (bold) the part that searched for in r
 remove "enter this category" somehow!
 check if a non-leaf category will never have poems
 use row factory in sqlite
+dynaconf -- using setting and env together

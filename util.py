@@ -1,4 +1,5 @@
 from persian_tools import digits
+from telegram import InlineKeyboardButton
 
 import const
 
@@ -44,3 +45,14 @@ class Util:
                 poem_in_a_single_message += verse + '\n'
         messages.append(Util.format_poem(poem_in_a_single_message, poem_info[1], poem_info[0], poem_info[2]))
         return messages
+
+    @staticmethod
+    def create_inline_keyboard(number_in_each_row: int, total_buttons: int, button_text_list: list, button_callback_data_list: list):
+        buttons = list()
+        for i in range(0, total_buttons, number_in_each_row):
+            row = list()
+            for j in range(i, i + number_in_each_row):
+                button = InlineKeyboardButton(button_text_list[j], callback_data=button_callback_data_list[j])
+                row.append(button)
+            buttons.append(row)
+        return buttons
