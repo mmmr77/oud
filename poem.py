@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes
 import const
 from db import DataBase
 from recitation import Recitation
-from setting import POEM_PER_PAGE
+from config import settings
 from util import Util
 
 
@@ -47,10 +47,10 @@ class Poem:
         last_row = []
         if offset != 0:
             last_row.append(
-                InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - POEM_PER_PAGE}'))
-        if len(poems) == POEM_PER_PAGE:
+                InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - settings.POEM_PER_PAGE}'))
+        if len(poems) == settings.POEM_PER_PAGE:
             last_row.append(
-                InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + POEM_PER_PAGE}'))
+                InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + settings.POEM_PER_PAGE}'))
         if last_row:
             buttons.append(last_row)
         menu = InlineKeyboardMarkup(buttons)

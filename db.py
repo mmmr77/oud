@@ -1,6 +1,6 @@
 import sqlite3
 
-from setting import POEM_PER_PAGE, SEARCH_RESULT_PER_PAGE
+from config import settings
 
 
 class Singleton(type):
@@ -57,7 +57,7 @@ class DataBase(metaclass=Singleton):
         parent_id = self.cursor.fetchone()
         return parent_id[0]
 
-    def get_category_poems(self, category_id, offset: int = 0, limit: int = POEM_PER_PAGE) -> list:
+    def get_category_poems(self, category_id, offset: int = 0, limit: int = settings.POEM_PER_PAGE) -> list:
         command = 'SELECT * FROM poem WHERE cat_id=? ORDER BY id LIMIT ? OFFSET ?'
         self.cursor.execute(command, (category_id, limit, offset))
         poems = self.cursor.fetchall()
@@ -69,7 +69,7 @@ class DataBase(metaclass=Singleton):
         count = self.cursor.fetchone()
         return count
 
-    def search_poem(self, text: str, offset: int, limit: int = SEARCH_RESULT_PER_PAGE) -> list:
+    def search_poem(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list:
         command = "SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
                   f"JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text LIKE '%{text}%'" \
                   "LIMIT ? OFFSET ?"
@@ -99,9 +99,9 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
-    def insert_recitation_data(self, poem_id, id, title, dnldurl, artist, audio_order, recitation_type):
+    def insert_recitation_data(self, poem_id, id_, title, dnldurl, artist, audio_order, recitation_type):
         command = 'INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        self.cursor.execute(command, (poem_id, id, title, dnldurl, artist, audio_order, recitation_type))
+        self.cursor.execute(command, (poem_id, id_, title, dnldurl, artist, audio_order, recitation_type))
         self.connection.commit()
 
     def add_recitation_file_id(self, file_id, recitation_id):

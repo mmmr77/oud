@@ -3,10 +3,12 @@ anyio==4.3.0
 APScheduler==3.10.4
 cachetools==5.3.3
 certifi==2024.2.2
+dynaconf==3.2.6
 h11==0.14.0
 httpcore==1.0.5
 httpx==0.27.0
 idna==3.7
+install==1.3.5
 persian-tools==0.0.11
 python-dotenv==1.0.1
 python-telegram-bot==21.2
