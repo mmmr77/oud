@@ -72,4 +72,8 @@ SEARCH_RESULT_COUNT = """
 جستجوی شما {count} نتیجه داشت
 """
 
+SEARCH_NOT_ENOUGH_CHARACTERS = """
+عبارت جستجو باید دارای حداقل سه حرف باشد
+"""
+
 __all__ = ("ABOUT", "OPINION", "HELP")

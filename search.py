@@ -18,6 +18,9 @@ class Search:
     @staticmethod
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, update.message)
+        if len(search_text) < 3:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_NOT_ENOUGH_CHARACTERS)
+            return
         search_results: list = DataBase().search_poem(search_text, offset)
         total_search_count = DataBase().search_count(search_text)
         if not search_results:
@@ -29,7 +32,7 @@ class Search:
             buttons = list()
             for i in range(0, len(message), 4):
                 row = list()
-                for result in message[i:i+4]:
+                for result in message[i:i + 4]:
                     button = InlineKeyboardButton(digits.convert_to_fa(result[0]), callback_data=f'poem:{result[1]}')
                     row.append(button)
                 buttons.append(row)
@@ -41,7 +44,8 @@ class Search:
 
             if offset == 0:
                 await context.bot.send_message(chat_id=update.effective_chat.id,
-                                               text=const.SEARCH_RESULT_COUNT.format(count=digits.convert_to_fa(total_search_count)))
+                                               text=const.SEARCH_RESULT_COUNT.format(
+                                                   count=digits.convert_to_fa(total_search_count)))
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=message_text, reply_markup=menu)
             else:
                 await update.effective_message.edit_text(message_text)

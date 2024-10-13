@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 
 from telegram import Update
@@ -6,6 +5,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
+from config import settings
 from db import DataBase
 
 
@@ -50,7 +50,7 @@ class Command:
         DataBase().insert_opinion(user_id, message_text, creation_datetime)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_SUBMIT)
-        await context.bot.send_message(chat_id=os.environ.get("ADMIN_CHAT_ID"), text=const.OPINION_TO_ADMIN.format(
+        await context.bot.send_message(chat_id=settings.ADMIN_CHAT_ID, text=const.OPINION_TO_ADMIN.format(
             user=f'[{user_first_name}](tg://user?id={user_id})', text=message_text), parse_mode=ParseMode.MARKDOWN)
         return ConversationHandler.END
 
