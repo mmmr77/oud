@@ -26,44 +26,44 @@ class DataBase(metaclass=Singleton):
         poets = self.cursor.fetchall()
         return poets
 
-    def get_poet(self, poet_id):
+    def get_poet(self, poet_id: int):
         command = 'SELECT * FROM poet WHERE id=?'
         self.cursor.execute(command, (poet_id,))
         poet = self.cursor.fetchone()
         return poet
 
-    def get_poem_text(self, poem_id):
+    def get_poem_text(self, poem_id: int):
         command = "SELECT text FROM verse WHERE poem_id=? ORDER BY vorder, position"
         self.cursor.execute(command, (poem_id,))
         poem = self.cursor.fetchall()
         return poem
 
-    def get_poem_info(self, poem_id):
+    def get_poem_info(self, poem_id: int):
         command = "SELECT poem.title, poem.url, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
                   "cat.poet_id=poet.id WHERE poem.id=?"
         self.cursor.execute(command, (poem_id,))
         poem_info = self.cursor.fetchone()
         return poem_info
 
-    def get_poet_categories(self, poet_id, category_id):
+    def get_poet_categories(self, poet_id: int, category_id: int):
         command = 'SELECT * FROM cat WHERE poet_id=? AND parent_id=?'
         self.cursor.execute(command, (poet_id, category_id))
         categories = self.cursor.fetchall()
         return categories
 
-    def get_parent_category_id(self, category_id):
+    def get_parent_category_id(self, category_id: int):
         command = 'SELECT parent_id FROM cat WHERE id=?'
         self.cursor.execute(command, (category_id,))
         parent_id = self.cursor.fetchone()
         return parent_id[0]
 
-    def get_category_poems(self, category_id, offset: int = 0, limit: int = settings.POEM_PER_PAGE) -> list:
+    def get_category_poems(self, category_id: int, offset: int = 0, limit: int = settings.POEM_PER_PAGE) -> list:
         command = 'SELECT * FROM poem WHERE cat_id=? ORDER BY id LIMIT ? OFFSET ?'
         self.cursor.execute(command, (category_id, limit, offset))
         poems = self.cursor.fetchall()
         return poems
 
-    def get_category_poems_count(self, category_id):
+    def get_category_poems_count(self, category_id: int):
         command = 'SELECT COUNT(*) FROM poem WHERE cat_id=?'
         self.cursor.execute(command, (category_id,))
         count = self.cursor.fetchone()
@@ -77,7 +77,7 @@ class DataBase(metaclass=Singleton):
         poems = self.cursor.fetchall()
         return poems
 
-    def search_count(self, text):
+    def search_count(self, text: str):
         command = f"SELECT COUNT(*) FROM verse WHERE verse.text LIKE '%{text}%'"
         self.cursor.execute(command)
         count = self.cursor.fetchone()[0]
@@ -88,7 +88,7 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
-    def find_user_by_id(self, id_):
+    def find_user_by_id(self, id_: int):
         command = 'SELECT * FROM user WHERE id=?'
         self.cursor.execute(command, (id_,))
         user = self.cursor.fetchone()
@@ -99,17 +99,17 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
-    def insert_recitation_data(self, poem_id, id_, title, dnldurl, artist, audio_order, recitation_type):
+    def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int, recitation_type: int):
         command = 'INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES (?, ?, ?, ?, ?, ?, ?)'
         self.cursor.execute(command, (poem_id, id_, title, dnldurl, artist, audio_order, recitation_type))
         self.connection.commit()
 
-    def add_recitation_file_id(self, file_id, recitation_id):
+    def add_recitation_file_id(self, file_id: str, recitation_id: int):
         command = 'UPDATE poemsnd SET telegram_file_id=? WHERE id=?'
         self.cursor.execute(command, (file_id, recitation_id))
         self.connection.commit()
 
-    def get_recitation(self, poem_id):
+    def get_recitation(self, poem_id: int):
         command = 'SELECT telegram_file_id, title, artist FROM poemsnd WHERE poem_id=? ORDER BY audio_order'
         self.cursor.execute(command, (poem_id,))
         recitation = self.cursor.fetchone()

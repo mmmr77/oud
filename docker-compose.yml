@@ -8,3 +8,7 @@ services:
     restart: always
     env_file:
       - ./.env
+    volumes:
+      - type: bind
+        source: ./ganjoor.s3db
+        target: /app/ganjoor.s3db

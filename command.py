@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from telegram import Update
 from telegram.constants import ParseMode
@@ -31,7 +31,7 @@ class Command:
             first_name = update.message.from_user.first_name
             last_name = update.message.from_user.last_name
             username = update.message.from_user.username
-            creation_datetime = datetime.utcnow()
+            creation_datetime = datetime.now(UTC)
             DataBase().insert_user(user_id, first_name, last_name, username, creation_datetime)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.START)
@@ -46,7 +46,7 @@ class Command:
         user_first_name = update.message.from_user.first_name
         user_id = update.message.from_user.id
         message_text = update.message.text
-        creation_datetime = datetime.utcnow()
+        creation_datetime = datetime.now(UTC)
         DataBase().insert_opinion(user_id, message_text, creation_datetime)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_SUBMIT)

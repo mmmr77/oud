@@ -22,7 +22,7 @@ class Recitation:
     @oud_files
     async def add_recitation_file_id_to_db(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file_id = update.channel_post.audio.file_id
-        recitation_id = update.channel_post.caption
+        recitation_id = int(update.channel_post.caption)
         DataBase().add_recitation_file_id(file_id, recitation_id)
 
     @staticmethod
@@ -41,5 +41,5 @@ class Recitation:
                                           recitation_type)
 
     @staticmethod
-    def get_recitation_info(poem_id):
+    def get_recitation_info(poem_id: int):
         return DataBase().get_recitation(poem_id)

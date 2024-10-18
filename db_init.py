@@ -20,6 +20,19 @@ CREATE TABLE IF NOT EXISTS opinion (
 )
 """
 
+"""
+ALTER TABLE poemsnd DROP COLUMN filepath;
+ALTER TABLE poemsnd RENAME COLUMN description to title
+ALTER TABLE poemsnd RENAME COLUMN isdirect to audio_order
+ALTER TABLE poemsnd RENAME COLUMN syncguid to artist
+ALTER TABLE poemsnd RENAME COLUMN fchksum to telegram_file_id
+ALTER TABLE poemsnd RENAME COLUMN isuploaded to recitation_type
+"""
+
+"""
+ALTER TABLE fav DROP COLUMN pos;
+ALTER TABLE fav RENAME COLUMN verse_id to user_id
+"""
 
 def init_database():
     connection = sqlite3.connect('ganjoor.s3db')

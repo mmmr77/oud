@@ -15,7 +15,7 @@ class Poem:
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
-        poem_id = query.data.split(':')[1]
+        poem_id = int(query.data.split(':')[1])
 
         poem_text = DataBase().get_poem_text(poem_id)
         new_poem_text = Util.break_long_verses(poem_text)
@@ -32,7 +32,7 @@ class Poem:
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
-        category_id = query.data.split(':')[1]
+        category_id = int(query.data.split(':')[1])
         offset = int(query.data.split(':')[2])
 
         poems: list = DataBase().get_category_poems(category_id, offset)

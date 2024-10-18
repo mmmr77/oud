@@ -28,7 +28,7 @@ class Poet:
     async def poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
-        poet_id = query.data.split(':')[1]
+        poet_id = int(query.data.split(':')[1])
         category_id = int(query.data.split(':')[2])
         parent_category_id = DataBase().get_parent_category_id(category_id)
         poet = DataBase().get_poet(poet_id)
