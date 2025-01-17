@@ -1,3 +1,5 @@
+from typing import Optional
+
 from persian_tools import digits
 from telegram import InlineKeyboardButton
 
@@ -56,3 +58,11 @@ class Util:
                 row.append(button)
             buttons.append(row)
         return buttons
+
+    @staticmethod
+    def create_username_with_at(username: Optional[str]) -> str:
+        if username is None:
+            username_with_at = ''
+        else:
+            username_with_at = '@' + username
+        return username_with_at

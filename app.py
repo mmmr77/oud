@@ -21,7 +21,7 @@ class Application:
         self.application.add_handler(start_handler)
 
         opinion_handler = ConversationHandler(entry_points=[CommandHandler('opinion', Command.opinion)],
-                                              states={0: [MessageHandler(filters.TEXT & ~filters.Regex(r'^لغو$'),
+                                              states={0: [MessageHandler(filters.ALL & ~filters.Regex(r'^لغو$'),
                                                                          Command.opinion_response)]},
                                               fallbacks=[
                                                   MessageHandler(filters.Regex(r'^لغو$'), Command.opinion_cancel)])

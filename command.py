@@ -1,12 +1,13 @@
 from datetime import datetime, UTC
 
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
 from config import settings
 from db import DataBase
+from util import Util
 
 
 class Command:
@@ -38,23 +39,28 @@ class Command:
 
     @staticmethod
     async def opinion(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION)
+        keyboard = ReplyKeyboardMarkup([[const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION, reply_markup=keyboard)
         return 0
 
     @staticmethod
     async def opinion_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_first_name = update.message.from_user.first_name
         user_id = update.message.from_user.id
+        username = Util.create_username_with_at(update.message.from_user.username)
         message_text = update.message.text
         creation_datetime = datetime.now(UTC)
         DataBase().insert_opinion(user_id, message_text, creation_datetime)
 
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_SUBMIT)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_SUBMIT,
+                                       reply_markup=ReplyKeyboardRemove())
         await context.bot.send_message(chat_id=settings.ADMIN_CHAT_ID, text=const.OPINION_TO_ADMIN.format(
-            user=f'[{user_first_name}](tg://user?id={user_id})', text=message_text), parse_mode=ParseMode.MARKDOWN)
+            user=f'[{user_first_name}](tg://user?id={user_id})', username=username), parse_mode=ParseMode.MARKDOWN)
+        await update.message.forward(settings.ADMIN_CHAT_ID)
         return ConversationHandler.END
 
     @staticmethod
     async def opinion_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_CANCEL)
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_CANCEL,
+                                       reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
