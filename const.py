@@ -77,4 +77,8 @@ SEARCH_NOT_ENOUGH_CHARACTERS = """
 عبارت جستجو باید دارای حداقل سه حرف باشد
 """
 
+ADMIN_SEND_TO_ALL = "پیام مورد نظر خود را ارسال کنید."
+
+ADMIN_SUCCESSFUL_SEND_TO_ALL = "پیام شما ارسال شد."
+
 __all__ = ("ABOUT", "OPINION", "HELP")

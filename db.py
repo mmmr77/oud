@@ -99,7 +99,8 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
-    def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int, recitation_type: int):
+    def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int,
+                               recitation_type: int):
         command = 'INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES (?, ?, ?, ?, ?, ?, ?)'
         self.cursor.execute(command, (poem_id, id_, title, dnldurl, artist, audio_order, recitation_type))
         self.connection.commit()
@@ -114,3 +115,9 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, (poem_id,))
         recitation = self.cursor.fetchone()
         return recitation
+
+    def get_all_users(self, offset: int = 0, limit: int = settings.USER_FETCH_COUNT) -> list:
+        command = 'SELECT id FROM user LIMIT ? OFFSET ?'
+        self.cursor.execute(command, (limit, offset))
+        user_ids = self.cursor.fetchall()
+        return user_ids

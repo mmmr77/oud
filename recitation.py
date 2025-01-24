@@ -10,7 +10,7 @@ from db import DataBase
 
 def oud_files(func):
     @functools.wraps(func)
-    async def wrapper_oud_files(update, context):
+    async def wrapper_oud_files(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if update.effective_chat.id == settings.OUD_FILES_CHANNEL_ID:
             await func(update, context)
 

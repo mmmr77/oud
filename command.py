@@ -5,6 +5,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
+from admin import admin
 from config import settings
 from db import DataBase
 from util import Util
@@ -64,3 +65,9 @@ class Command:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_CANCEL,
                                        reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
+
+    @staticmethod
+    @admin
+    async def sendtoall(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await context.bot.send_message(update.effective_chat.id, text=const.ADMIN_SEND_TO_ALL)
+        return 0
