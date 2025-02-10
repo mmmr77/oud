@@ -53,7 +53,7 @@ class Util:
         buttons = list()
         for i in range(0, total_buttons, button_in_each_row):
             row = list()
-            for j in range(i, i + button_in_each_row):
+            for j in range(i, min(i + button_in_each_row, total_buttons)):
                 button = InlineKeyboardButton(button_text_list[j], callback_data=button_callback_data_list[j])
                 row.append(button)
             buttons.append(row)
