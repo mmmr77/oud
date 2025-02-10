@@ -1,11 +1,12 @@
+from persian_tools.digits import convert_to_fa
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 import const
+from config import settings
 from db import DataBase
 from recitation import Recitation
-from config import settings
 from util import Util
 
 
@@ -24,9 +25,12 @@ class Poem:
 
         for message in messages:
             await context.bot.send_message(query.from_user.id, message, parse_mode=ParseMode.HTML)
-        if recitation_info := Recitation.get_recitation_info(poem_id):
-            await context.bot.send_audio(query.from_user.id, recitation_info[0], performer=recitation_info[2],
-                                         title=recitation_info[1])
+
+        recitation_count, keyboard = Recitation.get_recitations(poem_id)
+        if recitation_count > 0:
+            await context.bot.send_message(query.from_user.id,
+                                           convert_to_fa(const.RECITATION_COUNT.format(count=recitation_count)),
+                                           reply_markup=keyboard)
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from persian_tools import digits
-from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 import const
 
@@ -49,15 +49,15 @@ class Util:
         return messages
 
     @staticmethod
-    def create_inline_keyboard(number_in_each_row: int, total_buttons: int, button_text_list: list, button_callback_data_list: list):
+    def create_inline_keyboard(button_in_each_row: int, total_buttons: int, button_text_list: list, button_callback_data_list: list):
         buttons = list()
-        for i in range(0, total_buttons, number_in_each_row):
+        for i in range(0, total_buttons, button_in_each_row):
             row = list()
-            for j in range(i, i + number_in_each_row):
+            for j in range(i, i + button_in_each_row):
                 button = InlineKeyboardButton(button_text_list[j], callback_data=button_callback_data_list[j])
                 row.append(button)
             buttons.append(row)
-        return buttons
+        return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def create_username_with_at(username: Optional[str]) -> str:

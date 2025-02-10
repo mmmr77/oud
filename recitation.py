@@ -6,6 +6,9 @@ from telegram.ext import ContextTypes
 
 from config import settings
 from db import DataBase
+from util import Util
+
+RECITATION_TYPE = {0: 'ساده', 1: 'تفسیر'}
 
 
 def oud_files(func):
@@ -41,5 +44,20 @@ class Recitation:
                                           recitation_type)
 
     @staticmethod
-    def get_recitation_info(poem_id: int):
-        return DataBase().get_recitation(poem_id)
+    def get_recitations(poem_id: int):
+        recitations = DataBase().get_recitations(poem_id)
+        artists_and_recitation_type = list(map(lambda x: x[1] + f" ({RECITATION_TYPE.get(x[2], 'ساده')})", recitations))
+        ids = list(map(lambda x: f'recitation:{x[0]}', recitations))
+        if recitations:
+            keyboard = Util.create_inline_keyboard(2, len(recitations), artists_and_recitation_type, ids)
+            return len(recitations), keyboard
+        else:
+            return 0, None
+
+    @staticmethod
+    async def get_recitation_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        recitation_id = int(query.data.split(':')[1])
+        recitation = DataBase().get_recitation(recitation_id)
+        await context.bot.send_audio(query.from_user.id, recitation[0], performer=recitation[2], title=recitation[1])

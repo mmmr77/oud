@@ -36,15 +36,17 @@ class Application:
 
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
 
-        recitation_data_handler = MessageHandler(filters.TEXT & filters.ChatType.CHANNEL,
+        recitation_saver_data_handler = MessageHandler(filters.TEXT & filters.ChatType.CHANNEL,
                                                  Recitation.add_recitation_data_to_db)
 
         search_message_handler = MessageHandler(filters.TEXT, Search.search_poems)
 
         search_query_handler = CallbackQueryHandler(Search.search_poems, r'^search:.+:\d+$')
 
-        recitation_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
+        recitation_saver_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
                                                   Recitation.add_recitation_file_id_to_db)
+
+        recitation_handler = CallbackQueryHandler(Recitation.get_recitation_by_id, r'^recitation:\d+$')
 
         send_to_all_handler = ConversationHandler(entry_points=[CommandHandler('sendtoall', Command.sendtoall)],
                                                   states={0: [MessageHandler(filters.TEXT, Admin.send_to_all)]},
@@ -52,5 +54,5 @@ class Application:
 
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
-             send_to_all_handler, commands_handler, recitation_data_handler, recitation_audio_handler,
-             search_query_handler, search_message_handler])
+             send_to_all_handler, commands_handler, recitation_saver_data_handler, recitation_saver_audio_handler,
+             search_query_handler, search_message_handler, recitation_handler])

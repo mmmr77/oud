@@ -110,9 +110,15 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, (file_id, recitation_id))
         self.connection.commit()
 
-    def get_recitation(self, poem_id: int) -> tuple:
-        command = 'SELECT telegram_file_id, title, artist FROM poemsnd WHERE poem_id=? ORDER BY audio_order'
+    def get_recitations(self, poem_id: int) -> list[tuple]:
+        command = 'SELECT id, artist, recitation_type FROM poemsnd WHERE poem_id=? ORDER BY audio_order'
         self.cursor.execute(command, (poem_id,))
+        recitations = self.cursor.fetchall()
+        return recitations
+
+    def get_recitation(self, recitation_id: int) -> tuple:
+        command = 'SELECT telegram_file_id, title, artist FROM poemsnd WHERE id=?'
+        self.cursor.execute(command, (recitation_id,))
         recitation = self.cursor.fetchone()
         return recitation
 
