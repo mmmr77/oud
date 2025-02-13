@@ -13,7 +13,10 @@ class Poet:
         for i in range(0, len(poets), 3):
             row = list()
             for poet in poets[i:i + 3]:
-                button = InlineKeyboardButton(poet[1], callback_data=f'poet:{poet[0]}:{poet[2]}')
+                poet_id = poet[0]
+                poet_name = poet[1]
+                poet_category_id = poet[2]
+                button = InlineKeyboardButton(poet_name, callback_data=f'poet:{poet_id}:{poet_category_id}')
                 row.append(button)
             buttons.append(row)
         menu = InlineKeyboardMarkup(buttons)
@@ -40,6 +43,11 @@ class Poet:
             buttons = list()
             for category in categories:
                 button = [InlineKeyboardButton(category[2], callback_data=f'poet:{poet_id}:{category[0]}')]
+                buttons.append(button)
+
+            poems = DataBase().get_category_poems(category_id)
+            for poem in poems:
+                button = [InlineKeyboardButton(poem[2], callback_data=f'poem:{poem[0]}')]
                 buttons.append(button)
         if category_id != poet[2]:
             buttons.append([InlineKeyboardButton("بازگشت", callback_data=f'poet:{poet_id}:{parent_category_id}')])

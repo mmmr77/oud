@@ -42,7 +42,7 @@ class Util:
             message = Util.format_poem(poem_in_a_single_message + verse, poem_info[1], poem_info[0], poem_info[2])
             if len(message) > 4096:
                 messages.append(Util.format_poem(poem_in_a_single_message, poem_info[1], poem_info[0], poem_info[2]))
-                poem_in_a_single_message = verse
+                poem_in_a_single_message = verse + '\n'
             else:
                 poem_in_a_single_message += verse + '\n'
         messages.append(Util.format_poem(poem_in_a_single_message, poem_info[1], poem_info[0], poem_info[2]))
