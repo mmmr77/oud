@@ -127,3 +127,33 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, (limit, offset))
         user_ids = self.cursor.fetchall()
         return user_ids
+
+    def check_is_favorite(self, poem_id: int, user_id: int) -> bool:
+        command = 'SELECT * FROM fav WHERE poem_id=? AND user_id=?'
+        self.cursor.execute(command, (poem_id, user_id))
+        favorite = self.cursor.fetchone()
+        return True if favorite else False
+
+    def remove_from_favorites(self, poem_id: int, user_id: int) -> None:
+        command = 'DELETE FROM fav WHERE poem_id=? AND user_id=?'
+        self.cursor.execute(command, (poem_id, user_id))
+        self.connection.commit()
+
+    def add_to_favorites(self, poem_id: int, user_id: int) -> None:
+        command = 'INSERT INTO fav VALUES (?, ?)'
+        self.cursor.execute(command, (poem_id, user_id))
+        self.connection.commit()
+
+    def get_favorite_count(self, user_id: int) -> int:
+        command = 'SELECT COUNT(*) FROM fav WHERE user_id=?'
+        self.cursor.execute(command, (user_id,))
+        count = self.cursor.fetchone()
+        return count[0]
+
+    def get_favorite_poems(self, user_id: int, offset: int, limit: int = settings.MAX_FAVORITE_PER_PAGE) -> list[tuple]:
+        command = ('SELECT poem.title, poet.name, verse.text, fav.poem_id FROM fav JOIN poem ON poem.id=fav.poem_id '
+                   'JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id JOIN verse ON verse.poem_id=poem.id'
+                   ' WHERE fav.user_id=? AND verse.vorder=1 LIMIT ? OFFSET ?')
+        self.cursor.execute(command, (user_id, limit, offset))
+        favorite_poems = self.cursor.fetchall()
+        return favorite_poems

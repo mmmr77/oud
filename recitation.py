@@ -1,7 +1,7 @@
 import functools
 import json
 
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 from config import settings
@@ -46,10 +46,10 @@ class Recitation:
     @staticmethod
     def get_recitations(poem_id: int):
         recitations = DataBase().get_recitations(poem_id)
-        artists_and_recitation_type = list(map(lambda x: x[1] + f" ({RECITATION_TYPE.get(x[2], 'ساده')})", recitations))
+        artists_and_recitation_type = list(map(lambda x: x[1] + f" ({RECITATION_TYPE.get(x[2], RECITATION_TYPE[0])})", recitations))
         ids = list(map(lambda x: f'recitation:{x[0]}', recitations))
         if recitations:
-            keyboard = Util.create_inline_keyboard(2, len(recitations), artists_and_recitation_type, ids)
+            keyboard = InlineKeyboardMarkup(Util.create_inline_buttons(2, len(recitations), artists_and_recitation_type, ids))
             return len(recitations), keyboard
         else:
             return 0, None

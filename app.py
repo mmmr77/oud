@@ -3,6 +3,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHan
 
 from admin import Admin
 from command import Command
+from favorite import Favorite
 from poem import Poem
 from poet import Poet
 from recitation import Recitation
@@ -52,7 +53,16 @@ class Application:
                                                   states={0: [MessageHandler(filters.TEXT, Admin.send_to_all)]},
                                                   fallbacks=[])
 
+        favorite_add_handler = CallbackQueryHandler(Favorite.add_to_favorites, r'^favadd:\d+$')
+
+        favorite_remove_handler = CallbackQueryHandler(Favorite.remove_from_favorites, r'^favremove:\d+$')
+
+        favorite_poems_handler = CommandHandler('favorites', Favorite.list_of_favorite_poems)
+
+        favorite_poems_query_handler = CallbackQueryHandler(Favorite.list_of_favorite_poems, r'^favorites:\d+$')
+
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
-             send_to_all_handler, commands_handler, recitation_saver_data_handler, recitation_saver_audio_handler,
-             search_query_handler, search_message_handler, recitation_handler])
+             send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
+             recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
+             favorite_poems_query_handler, commands_handler, search_message_handler])

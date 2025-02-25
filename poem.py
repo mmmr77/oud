@@ -6,29 +6,37 @@ from telegram.ext import ContextTypes
 import const
 from config import settings
 from db import DataBase
+from favorite import Favorite
 from recitation import Recitation
 from util import Util
 
 
 class Poem:
-
     @staticmethod
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
         poem_id = int(query.data.split(':')[1])
+        user_id = query.from_user.id
 
         poem_text = DataBase().get_poem_text(poem_id)
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
         messages = Util.break_long_poems(new_poem_text, poem_info)
 
-        for message in messages:
-            await context.bot.send_message(query.from_user.id, message, parse_mode=ParseMode.HTML)
+        is_favorite = DataBase().check_is_favorite(poem_id, user_id)
+        if is_favorite:
+            keyboard = Favorite.get_remove_favorites_keyboard(poem_id)
+        else:
+            keyboard = Favorite.get_add_to_favorites_keyboard(poem_id)
+
+        for message in messages[:-1]:
+            await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML)
+        await context.bot.send_message(user_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard)
 
         recitation_count, keyboard = Recitation.get_recitations(poem_id)
         if recitation_count > 0:
-            await context.bot.send_message(query.from_user.id,
+            await context.bot.send_message(user_id,
                                            convert_to_fa(const.RECITATION_COUNT.format(count=recitation_count)),
                                            reply_markup=keyboard)
 

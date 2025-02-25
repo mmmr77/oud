@@ -11,7 +11,8 @@ class Util:
     def trim_search_results(results: list[tuple], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
-            a = (i + 1 + offset, result[0], digits.convert_to_fa(i + 1 + offset) + '. ' + result[1] + ' - ' + result[3] + '\n' + result[2])
+            a = (i + 1 + offset, result[0],
+                 digits.convert_to_fa(i + 1 + offset) + '. ' + result[1] + ' - ' + result[3] + '\n' + result[2])
             if len(a[2]) + sum(map(lambda x: len(x[2]), message)) + 2 * len(message) <= 4096:
                 message.append(a)
             else:
@@ -24,8 +25,8 @@ class Util:
         for verse in poem_text:
             if len(verse[0]) > 3800:
                 separation_index = verse[0].rfind('.', 0, 3800)
-                new_poem_text.append(verse[0][:separation_index+1])
-                new_poem_text.append(verse[0][separation_index+1:])
+                new_poem_text.append(verse[0][:separation_index + 1])
+                new_poem_text.append(verse[0][separation_index + 1:])
             else:
                 new_poem_text.append(verse[0])
         return new_poem_text
@@ -49,7 +50,8 @@ class Util:
         return messages
 
     @staticmethod
-    def create_inline_keyboard(button_in_each_row: int, total_buttons: int, button_text_list: list, button_callback_data_list: list):
+    def create_inline_buttons(button_in_each_row: int, total_buttons: int, button_text_list: list,
+                              button_callback_data_list: list):
         buttons = list()
         for i in range(0, total_buttons, button_in_each_row):
             row = list()
@@ -57,7 +59,7 @@ class Util:
                 button = InlineKeyboardButton(button_text_list[j], callback_data=button_callback_data_list[j])
                 row.append(button)
             buttons.append(row)
-        return InlineKeyboardMarkup(buttons)
+        return buttons
 
     @staticmethod
     def create_username_with_at(username: Optional[str]) -> str:
@@ -66,3 +68,10 @@ class Util:
         else:
             username_with_at = '@' + username
         return username_with_at
+
+    @staticmethod
+    def trim_text(text: str, max_length: int = 100) -> str:
+        if len(text) <= max_length:
+            return text
+        ind = text.rfind(' ', 0, max_length)
+        return text[: ind] + '...'
