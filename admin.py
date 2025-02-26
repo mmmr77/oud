@@ -1,4 +1,5 @@
 import functools
+import logging
 import time
 
 from telegram import Update
@@ -34,7 +35,7 @@ class Admin:
                 try:
                     await context.bot.send_message(user_id[0], text=update.message.text)
                 except Forbidden:
-                    print(user_id)
+                    logging.warning(f"403: {user_id[0]}")
                 except RetryAfter as e:
                     time.sleep(e.retry_after)
                     await context.bot.send_message(user_id[0], text=update.message.text)

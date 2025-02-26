@@ -3,6 +3,7 @@ from datetime import datetime, UTC
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
+from telegram.helpers import escape_markdown, mention_markdown
 
 import const
 from admin import admin
@@ -55,8 +56,9 @@ class Command:
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_SUBMIT,
                                        reply_markup=ReplyKeyboardRemove())
-        await context.bot.send_message(chat_id=settings.ADMIN_CHAT_ID, text=const.OPINION_TO_ADMIN.format(
-            user=f'[{user_first_name}](tg://user?id={user_id})', username=username), parse_mode=ParseMode.MARKDOWN)
+        text = const.OPINION_TO_ADMIN.format(
+            user=mention_markdown(user_id, user_first_name, 2), username=escape_markdown(username, 2))
+        await context.bot.send_message(chat_id=settings.ADMIN_CHAT_ID, text=text, parse_mode=ParseMode.MARKDOWN_V2)
         await update.message.forward(settings.ADMIN_CHAT_ID)
         return ConversationHandler.END
 
