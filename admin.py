@@ -34,7 +34,7 @@ class Admin:
                 try:
                     await context.bot.send_message(user_id[0], text=update.message.text)
                 except Forbidden:
-                    continue
+                    print(user_id)
                 except RetryAfter as e:
                     time.sleep(e.retry_after)
                     await context.bot.send_message(user_id[0], text=update.message.text)
