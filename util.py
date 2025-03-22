@@ -1,7 +1,7 @@
 from typing import Optional
 
 from persian_tools import digits
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton
 
 import const
 

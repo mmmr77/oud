@@ -13,12 +13,7 @@ from util import Util
 
 class Poem:
     @staticmethod
-    async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        query = update.callback_query
-        await query.answer()
-        poem_id = int(query.data.split(':')[1])
-        user_id = query.from_user.id
-
+    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE):
         poem_text = DataBase().get_poem_text(poem_id)
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
@@ -39,6 +34,15 @@ class Poem:
             await context.bot.send_message(user_id,
                                            convert_to_fa(const.RECITATION_COUNT.format(count=recitation_count)),
                                            reply_markup=keyboard)
+
+    @staticmethod
+    async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        poem_id = int(query.data.split(':')[1])
+        user_id = query.from_user.id
+
+        await Poem.get_poem_by_id(poem_id, user_id, context)
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):

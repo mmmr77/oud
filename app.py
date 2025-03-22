@@ -3,6 +3,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHan
 
 from admin import Admin
 from command import Command
+from omen import Omen
 from favorite import Favorite
 from poem import Poem
 from poet import Poet
@@ -61,8 +62,13 @@ class Application:
 
         favorite_poems_query_handler = CallbackQueryHandler(Favorite.list_of_favorite_poems, r'^favorites:\d+$')
 
+        hafez_show_omen_handler = CallbackQueryHandler(Omen.show_hafez_omen, r'^omen')
+
+        hafez_omen_intro_handler = CommandHandler('omen', Omen.show_omen_introduction)
+
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
              recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
-             favorite_poems_query_handler, commands_handler, search_message_handler])
+             favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, commands_handler,
+             search_message_handler])

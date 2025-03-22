@@ -157,3 +157,21 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, (user_id, limit, offset))
         favorite_poems = self.cursor.fetchall()
         return favorite_poems
+
+    def get_random_poem(self, poem_name: str, category_name: str) -> int:
+        command = 'SELECT id FROM cat WHERE text=?'
+        self.cursor.execute(command, (poem_name,))
+        poet_cat_id = self.cursor.fetchone()[0]
+        command = 'SELECT id FROM cat WHERE text=? AND parent_id=?'
+        self.cursor.execute(command, (category_name, poet_cat_id))
+        cat_id = self.cursor.fetchone()[0]
+        command = 'SELECT id FROM poem WHERE cat_id=? ORDER BY RANDOM() LIMIT 1'
+        self.cursor.execute(command, (cat_id,))
+        poem_id = self.cursor.fetchone()[0]
+        return poem_id
+
+    def get_omen(self, poem_id: int) -> str:
+        command = 'SELECT interpretation FROM omen WHERE poem_id=?'
+        self.cursor.execute(command, (poem_id,))
+        interpretation = self.cursor.fetchone()[0]
+        return interpretation

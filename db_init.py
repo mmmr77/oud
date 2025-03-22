@@ -20,6 +20,14 @@ CREATE TABLE IF NOT EXISTS opinion (
 )
 """
 
+OMEN_TABLE = """
+CREATE TABLE IF NOT EXISTS omen (
+    id INTEGER NOT NULL UNIQUE PRIMARY KEY AUTOINCREMENT,
+    poem_id int,
+    interpretation text,
+)
+"""
+
 """
 ALTER TABLE poemsnd DROP COLUMN filepath;
 ALTER TABLE poemsnd RENAME COLUMN description to title
