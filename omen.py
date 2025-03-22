@@ -10,6 +10,7 @@ from poem import Poem
 class Omen:
     @staticmethod
     async def show_hafez_omen(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.callback_query.answer()
         poet_name = 'حافظ'
         category_name = 'غزلیات'
         poem_id = DataBase().get_random_poem(poet_name, category_name)
