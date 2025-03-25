@@ -1,7 +1,9 @@
+import functools
 from typing import Optional
 
 from persian_tools import digits
 from telegram import InlineKeyboardButton
+from telegram.constants import ChatAction
 
 import const
 
@@ -75,3 +77,11 @@ class Util:
             return text
         ind = text.rfind(' ', 0, max_length)
         return text[: ind] + '...'
+
+    @staticmethod
+    def send_typing_action(func):
+        @functools.wraps(func)
+        async def wrapper_send_typing_action(update, context, *args, **kwargs):
+            await context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
+            return await func(update, context, *args, **kwargs)
+        return wrapper_send_typing_action

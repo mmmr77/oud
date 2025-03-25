@@ -18,6 +18,7 @@ class Search:
         return 0, message.text
 
     @staticmethod
+    @Util.send_typing_action
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, update.message)
         if len(search_text) < 3:
