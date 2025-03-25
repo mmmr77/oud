@@ -19,11 +19,14 @@ CANCEL = "لغو"
 
 OPINION_SUBMIT = "پیام شما ثبت شد."
 
-OPINION_CANCEL = "ارسال نظر لغو شد."
+OPINION_CANCEL = "ارسال پیام لغو شد."
 
 OPINION_TO_ADMIN = """
 یک پیام از {user}
 {username}
+
+پاسخ به این نظر با:
+/reply_{user_id}_{message_id}
 """
 
 HELP = """
@@ -60,7 +63,7 @@ SEARCH_RESULT_COUNT = "جستجوی شما {count} نتیجه داشت."
 
 SEARCH_NOT_ENOUGH_CHARACTERS = "عبارت جستجو باید دارای حداقل سه حرف باشد."
 
-ADMIN_SEND_TO_ALL = "پیام مورد نظر خود را ارسال کنید."
+SEND_YOUR_MESSAGE = "پیام مورد نظر خود را ارسال کنید."
 
 ADMIN_SUCCESSFUL_SEND_TO_ALL = "پیام شما ارسال شد."
 
