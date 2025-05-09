@@ -60,7 +60,7 @@ class Poem:
         for i in range(0, len(poems), 2):
             row = list()
             for poem in poems[i: i + 2]:
-                button = InlineKeyboardButton(Util.trim_text(poem[2], 80), callback_data=f'poem:{poem[0]}')
+                button = InlineKeyboardButton(Util.trim_text(poem["title"], 80), callback_data=f'poem:{poem["id"]}')
                 row.append(button)
             buttons.append(row)
 
