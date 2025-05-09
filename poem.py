@@ -13,7 +13,7 @@ from util import Util
 
 class Poem:
     @staticmethod
-    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE):
+    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, origin_message_id: int):
         poem_text = DataBase().get_poem_text(poem_id)
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
@@ -26,8 +26,11 @@ class Poem:
             keyboard = Favorite.get_add_to_favorites_keyboard(poem_id)
 
         for message in messages[:-1]:
-            await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML)
-        await context.bot.send_message(user_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard)
+            message = await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML,
+                                                     reply_to_message_id=origin_message_id)
+            origin_message_id = message.id
+        await context.bot.send_message(user_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard,
+                                       reply_to_message_id=origin_message_id)
 
         recitation_count, keyboard = Recitation.get_recitations(poem_id)
         if recitation_count > 0:
@@ -40,9 +43,10 @@ class Poem:
         query = update.callback_query
         await query.answer()
         poem_id = int(query.data.split(':')[1])
+        origin_message_id = update.effective_message.id
         user_id = query.from_user.id
 
-        await Poem.get_poem_by_id(poem_id, user_id, context)
+        await Poem.get_poem_by_id(poem_id, user_id, context, origin_message_id)
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):

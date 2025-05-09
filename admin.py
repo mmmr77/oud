@@ -33,12 +33,12 @@ class Admin:
             user_ids = DataBase().get_all_users(offset=offset)
             for user_id in user_ids:
                 try:
-                    await context.bot.send_message(user_id[0], text=update.message.text)
+                    await context.bot.send_message(user_id['id'], text=update.message.text)
                 except Forbidden:
-                    logging.warning(f"403: {user_id[0]}")
+                    logging.warning(f"403: {user_id['id']}")
                 except RetryAfter as e:
                     time.sleep(e.retry_after)
-                    await context.bot.send_message(user_id[0], text=update.message.text)
+                    await context.bot.send_message(user_id['id'], text=update.message.text)
             offset += settings.USER_FETCH_COUNT
             time.sleep(1)
         await context.bot.send_message(update.effective_chat.id, const.ADMIN_SUCCESSFUL_SEND_TO_ALL)

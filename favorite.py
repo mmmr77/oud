@@ -1,3 +1,4 @@
+import sqlite3
 from typing import Optional
 
 from persian_tools.digits import convert_to_fa
@@ -23,11 +24,11 @@ class Favorite:
         return keyboard
 
     @staticmethod
-    def create_favorites_messages(favorites: list) -> list[str]:
+    def create_favorites_messages(favorites: list[sqlite3.Row]) -> list[str]:
         messages = list()
         for ind, favorite in enumerate(favorites):
             number = convert_to_fa(ind + 1)
-            message = f'{number}. {Util.trim_text(favorite[0])} - {favorite[1]}\n{Util.trim_text(favorite[2])}'
+            message = f"{number}. {Util.trim_text(favorite['title'])} - {favorite['name']}\n{Util.trim_text(favorite['text'])}"
             messages.append(message)
         return messages
 
@@ -83,7 +84,7 @@ class Favorite:
             messages = Favorite.create_favorites_messages(favorites)
             message_text = '\n\n'.join(messages)
             button_texts = [convert_to_fa(i + 1) for i in range(len(favorites))]
-            callback_data = [f"poem:{favorite[3]}" for favorite in favorites]
+            callback_data = [f"poem:{favorite['poem_id']}" for favorite in favorites]
             buttons = Util.create_inline_buttons(4, len(favorites), button_texts, callback_data)
             last_row = []
             if offset > 0:

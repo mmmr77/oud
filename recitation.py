@@ -46,10 +46,12 @@ class Recitation:
     @staticmethod
     def get_recitations(poem_id: int):
         recitations = DataBase().get_recitations(poem_id)
-        artists_and_recitation_type = list(map(lambda x: x[1] + f" ({RECITATION_TYPE.get(x[2], RECITATION_TYPE[0])})", recitations))
-        ids = list(map(lambda x: f'recitation:{x[0]}', recitations))
+        artists_and_recitation_type = list(
+            map(lambda x: x["artist"] + f' ({RECITATION_TYPE.get(x["recitation_type"], RECITATION_TYPE[0])})', recitations))
+        ids = list(map(lambda x: f'recitation:{x["id"]}', recitations))
         if recitations:
-            keyboard = InlineKeyboardMarkup(Util.create_inline_buttons(2, len(recitations), artists_and_recitation_type, ids))
+            keyboard = InlineKeyboardMarkup(
+                Util.create_inline_buttons(2, len(recitations), artists_and_recitation_type, ids))
             return len(recitations), keyboard
         else:
             return 0, None
@@ -60,4 +62,5 @@ class Recitation:
         await query.answer()
         recitation_id = int(query.data.split(':')[1])
         recitation = DataBase().get_recitation(recitation_id)
-        await context.bot.send_audio(query.from_user.id, recitation[0], performer=recitation[2], title=recitation[1])
+        await context.bot.send_audio(query.from_user.id, recitation["telegram_file_id"], performer=recitation["artist"],
+                                     title=recitation["title"])

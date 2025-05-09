@@ -15,8 +15,9 @@ class Omen:
         category_name = 'غزلیات'
         poem_id = DataBase().get_random_poem(poet_name, category_name)
         user_id = update.effective_user.id
+        origin_message_id = update.effective_message.id
 
-        await Poem.get_poem_by_id(poem_id, user_id, context)
+        await Poem.get_poem_by_id(poem_id, user_id, context, origin_message_id)
         interpretation = DataBase().get_omen(poem_id)
         await context.bot.send_message(user_id, const.OMEN_RESULT.format(interpretation=interpretation))
 
