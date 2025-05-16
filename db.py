@@ -21,9 +21,14 @@ class DataBase(metaclass=Singleton):
     def __del__(self) -> None:
         self.cursor.close()
 
-    def get_poets(self) -> list[sqlite3.Row]:
-        command = 'SELECT id, name, cat_id FROM poet ORDER BY name'
-        self.cursor.execute(command)
+    def get_poets(self, search_text: str = None) -> list[sqlite3.Row]:
+        command = 'SELECT id, name, cat_id FROM poet {search}ORDER BY name'
+        if search_text:
+            command = command.format(search=f'WHERE name LIKE "%{search_text}%" ')
+            self.cursor.execute(command)
+        else:
+            command = command.format(search='')
+            self.cursor.execute(command)
         poets = self.cursor.fetchall()
         return poets
 
@@ -80,6 +85,19 @@ class DataBase(metaclass=Singleton):
 
     def search_count(self, text: str) -> int:
         command = f"SELECT COUNT(*) FROM verse WHERE verse.text LIKE '%{text}%'"
+        self.cursor.execute(command)
+        count = self.cursor.fetchone()[0]
+        return count
+
+    def search_title(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[sqlite3.Row]:
+        command = "SELECT poem.id, poem.title, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
+                   f"cat.poet_id=poet.id WHERE poem.title LIKE '%{text}%' LIMIT ? OFFSET ?"
+        self.cursor.execute(command, (limit, offset))
+        titles = self.cursor.fetchall()
+        return titles
+
+    def search_title_count(self, text: str):
+        command = f"SELECT COUNT(*) FROM poem WHERE poem.title LIKE '%{text}%'"
         self.cursor.execute(command)
         count = self.cursor.fetchone()[0]
         return count

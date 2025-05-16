@@ -15,6 +15,24 @@ OPINION = """
 در صورتی که منصرف شدید، کلمه‌ی لغو رو ارسال کنید.
 """
 
+SEARCH = "عبارت مورد نظر خود را برای جستجو در متن آثار، نام شاعران یا عنوان آثار وارد کنید."
+
+SEARCH_DESTINATION = "عبارت شما در کجا جستجو شود؟"
+
+SEARCH_POET = "نام شاعران"
+
+SEARCH_POEM_TITLE = "عنوان آثار"
+
+SEARCH_VERSE = "متن آثار"
+
+SEARCH_NO_RESULT = "هیچ نتیجه‌ای یافت نشد."
+
+SEARCH_RESULT_COUNT = "جستجوی شما {count} نتیجه داشت."
+
+SEARCH_NOT_ENOUGH_CHARACTERS = "عبارت جستجو باید دارای حداقل سه حرف باشد."
+
+SEARCH_CANCEL = "جستجو لغو شد."
+
 CANCEL = "لغو"
 
 OPINION_SUBMIT = "پیام شما ثبت شد."
@@ -57,12 +75,6 @@ POEM = """
 
 INVALID_COMMAND = "دستور داده شده نامعتبر است."
 
-SEARCH_NO_RESULT = "هیچ نتیجه‌ای یافت نشد."
-
-SEARCH_RESULT_COUNT = "جستجوی شما {count} نتیجه داشت."
-
-SEARCH_NOT_ENOUGH_CHARACTERS = "عبارت جستجو باید دارای حداقل سه حرف باشد."
-
 SEND_YOUR_MESSAGE = "پیام مورد نظر خود را ارسال کنید."
 
 ADMIN_SUCCESSFUL_SEND_TO_ALL = "پیام شما ارسال شد."
@@ -103,4 +115,4 @@ OMEN_RESULT = """
 @oud_poem_bot
 """
 
-__all__ = ("ABOUT", "OPINION", "HELP")
+__all__ = ("ABOUT", "OPINION", "HELP", "SEARCH")

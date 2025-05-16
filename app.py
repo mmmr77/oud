@@ -42,9 +42,22 @@ class Application:
         recitation_saver_data_handler = MessageHandler(filters.TEXT & filters.ChatType.CHANNEL,
                                                        Recitation.add_recitation_data_to_db)
 
-        search_message_handler = MessageHandler(filters.TEXT, Search.search_poems)
+        search_message_handler = ConversationHandler(
+            entry_points=[MessageHandler(filters.TEXT, Search.search_destination)],
+            states={
+                0: [
+                    MessageHandler(filters.Regex(rf"^{const.SEARCH_POET}$"), Search.search_poet),
+                    MessageHandler(filters.Regex(rf"^{const.SEARCH_VERSE}$"), Search.search_poems),
+                    MessageHandler(filters.Regex(rf"^{const.SEARCH_POEM_TITLE}$"), Search.search_title),
+                    MessageHandler(filters.ALL, Search.cancel)
+                ]
+            },
+            fallbacks=[MessageHandler(filters.Regex(rf"^{const.CANCEL}$"), Search.cancel)]
+        )
 
         search_query_handler = CallbackQueryHandler(Search.search_poems, r'^search:.+:\d+$')
+
+        search_title_query_handler = CallbackQueryHandler(Search.search_title, r'^searchtitle:.+:\d+$')
 
         recitation_saver_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
                                                         Recitation.add_recitation_file_id_to_db)
@@ -77,4 +90,4 @@ class Application:
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
              recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
              favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, reply_opinion_handler,
-             commands_handler, search_message_handler])
+             search_title_query_handler, commands_handler, search_message_handler])

@@ -14,8 +14,12 @@ class Util:
     def trim_search_results(results: list[Row], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
-            a = (i + 1 + offset, result['id'],
-                 digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name'] + '\n' + result['text'])
+            a = [i + 1 + offset, result['id'],
+                 digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name']]
+            try:
+                a[2] = a[2] + '\n' + result['text']
+            except:
+                pass
             if len(a[2]) + sum(map(lambda x: len(x[2]), message)) + 2 * len(message) <= 4096:
                 message.append(a)
             else:

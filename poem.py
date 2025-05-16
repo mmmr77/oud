@@ -50,10 +50,15 @@ class Poem:
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        query = update.callback_query
-        await query.answer()
-        category_id = int(query.data.split(':')[1])
-        offset = int(query.data.split(':')[2])
+        if context.user_data:
+            category_id = context.user_data['category_id']
+            offset = context.user_data['offset']
+            context.user_data.clear()
+        else:
+            query = update.callback_query
+            await query.answer()
+            category_id = int(query.data.split(':')[1])
+            offset = int(query.data.split(':')[2])
 
         poems: list = DataBase().get_category_poems(category_id, offset)
         buttons = list()
@@ -77,4 +82,4 @@ class Poem:
         if update.effective_message.text == const.POEMS.strip():
             await update.effective_message.edit_reply_markup(menu)
         else:
-            await context.bot.send_message(query.from_user.id, const.POEMS, reply_markup=menu)
+            await context.bot.send_message(update.effective_user.id, const.POEMS, reply_markup=menu)
