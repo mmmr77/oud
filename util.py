@@ -39,21 +39,24 @@ class Util:
         return new_poem_text
 
     @staticmethod
-    def format_poem(poem: str, url: str, title: str, poet: str) -> str:
-        return const.POEM.format(poem=poem, url=url, title=title, poet=poet)
+    def format_poem(poem: str, url: str, title: str, poet: str, bot_username: str) -> str:
+        return const.POEM.format(poem=poem, url=url, title=title, poet=poet, username=bot_username)
 
     @staticmethod
-    def break_long_poems(poem_text: list[str], poem_info: Row) -> list:
+    def break_long_poems(poem_text: list[str], poem_info: Row, bot_username: str) -> list:
         messages = list()
         poem_in_a_single_message = ''
         for verse in poem_text:
-            message = Util.format_poem(poem_in_a_single_message + verse, poem_info['url'], poem_info['title'], poem_info['name'])
+            message = Util.format_poem(poem_in_a_single_message + verse, poem_info['url'], poem_info['title'],
+                                       poem_info['name'], bot_username)
             if len(message) > 4096:
-                messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'], poem_info['name']))
+                messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'],
+                                                 poem_info['name'], bot_username))
                 poem_in_a_single_message = verse + '\n'
             else:
                 poem_in_a_single_message += verse + '\n'
-        messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'], poem_info['name']))
+        messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'],
+                                         poem_info['name'], bot_username))
         return messages
 
     @staticmethod

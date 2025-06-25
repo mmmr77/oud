@@ -7,6 +7,7 @@ from telegram.ext import ContextTypes
 import const
 from admin import admin
 from db import DataBase
+from poem import Poem
 
 
 class Command:
@@ -35,6 +36,10 @@ class Command:
             DataBase().insert_user(user_id, first_name, last_name, username, creation_datetime)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.START)
+
+        if context.args and len(context.args) == 1 and context.args[0].isnumeric():
+            poem_id = int(context.args[0])
+            await Poem.get_poem_by_id(poem_id, user_id, context, update.effective_message.id)
 
     @staticmethod
     @admin

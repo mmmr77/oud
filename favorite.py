@@ -13,15 +13,12 @@ from util import Util
 
 class Favorite:
     @staticmethod
-    def get_add_to_favorites_keyboard(poem_id: int) -> InlineKeyboardMarkup:
-        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton(const.FAVORITE_ADD, callback_data=f'favadd:{poem_id}')]])
-        return keyboard
+    def get_add_to_favorites_button(poem_id: int) -> InlineKeyboardButton:
+        return InlineKeyboardButton(const.FAVORITE_ADD, callback_data=f'favadd:{poem_id}')
 
     @staticmethod
-    def get_remove_favorites_keyboard(poem_id: int) -> InlineKeyboardMarkup:
-        keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton(const.FAVORITE_REMOVE, callback_data=f'favremove:{poem_id}')]])
-        return keyboard
+    def get_remove_favorites_button(poem_id: int) -> InlineKeyboardButton:
+        return InlineKeyboardButton(const.FAVORITE_REMOVE, callback_data=f'favremove:{poem_id}')
 
     @staticmethod
     def create_favorites_messages(favorites: list[sqlite3.Row]) -> list[str]:
@@ -54,7 +51,7 @@ class Favorite:
             DataBase().add_to_favorites(poem_id, user_id)
             await query.answer(const.FAVORITE_ADDED)
 
-        keyboard = Favorite.get_remove_favorites_keyboard(poem_id)
+        keyboard = InlineKeyboardMarkup([[Favorite.get_remove_favorites_button(poem_id)]])
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
@@ -69,7 +66,7 @@ class Favorite:
         else:
             await query.answer(const.FAVORITE_NOT_IN_FAVORITES)
 
-        keyboard = Favorite.get_add_to_favorites_keyboard(poem_id)
+        keyboard = InlineKeyboardMarkup([[Favorite.get_add_to_favorites_button(poem_id)]])
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod

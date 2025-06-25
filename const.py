@@ -70,7 +70,7 @@ POEM = """
 {poem}
 
 {poet}
-@oud_poem_bot
+@{username}
 """
 
 INVALID_COMMAND = "دستور داده شده نامعتبر است."
@@ -112,7 +112,7 @@ OMEN_RESULT = """
 
 {interpretation}
 
-@oud_poem_bot
+@{username}
 """
 
 __all__ = ("ABOUT", "OPINION", "HELP", "SEARCH")

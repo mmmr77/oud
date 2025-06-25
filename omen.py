@@ -19,7 +19,8 @@ class Omen:
 
         await Poem.get_poem_by_id(poem_id, user_id, context, origin_message_id)
         interpretation = DataBase().get_omen(poem_id)
-        await context.bot.send_message(user_id, const.OMEN_RESULT.format(interpretation=interpretation))
+        await context.bot.send_message(user_id, const.OMEN_RESULT.format(interpretation=interpretation,
+                                                                         username=context.bot.username))
 
     @staticmethod
     async def show_omen_introduction(update: Update, context: ContextTypes.DEFAULT_TYPE):

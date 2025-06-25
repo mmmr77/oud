@@ -1,5 +1,5 @@
 from persian_tools.digits import convert_to_fa
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CopyTextButton
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
@@ -15,15 +15,23 @@ class Poem:
     @staticmethod
     async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, origin_message_id: int):
         poem_text = DataBase().get_poem_text(poem_id)
+        if not poem_text:
+            return
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
-        messages = Util.break_long_poems(new_poem_text, poem_info)
+        bot_username = context.bot.username
+        messages = Util.break_long_poems(new_poem_text, poem_info, bot_username)
 
         is_favorite = DataBase().check_is_favorite(poem_id, user_id)
         if is_favorite:
-            keyboard = Favorite.get_remove_favorites_keyboard(poem_id)
+            button_favorite = Favorite.get_remove_favorites_button(poem_id)
         else:
-            keyboard = Favorite.get_add_to_favorites_keyboard(poem_id)
+            button_favorite = Favorite.get_add_to_favorites_button(poem_id)
+        keyboard = InlineKeyboardMarkup(
+            [[button_favorite],
+             [InlineKeyboardButton('پیوند اشتراک اثر',
+                                   copy_text=CopyTextButton(f"https://t.me/{bot_username}?start={poem_id}"))]]
+        )
 
         for message in messages[:-1]:
             message = await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML,
