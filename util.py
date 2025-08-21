@@ -1,5 +1,4 @@
 import functools
-from sqlite3 import Row
 from typing import Optional
 
 from persian_tools import digits
@@ -11,7 +10,7 @@ import const
 
 class Util:
     @staticmethod
-    def trim_search_results(results: list[Row], offset: int) -> list:
+    def trim_search_results(results: list[dict], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
             a = [i + 1 + offset, result['id'],
@@ -27,7 +26,7 @@ class Util:
         return message
 
     @staticmethod
-    def break_long_verses(poem_text: list[Row]) -> list:
+    def break_long_verses(poem_text: list[dict]) -> list:
         new_poem_text: list = list()
         for verse in poem_text:
             if len(verse['text']) > 3800:
@@ -43,7 +42,7 @@ class Util:
         return const.POEM.format(poem=poem, url=url, title=title, poet=poet, username=bot_username)
 
     @staticmethod
-    def break_long_poems(poem_text: list[str], poem_info: Row, bot_username: str) -> list:
+    def break_long_poems(poem_text: list[str], poem_info: dict, bot_username: str) -> list:
         messages = list()
         poem_in_a_single_message = ''
         for verse in poem_text:

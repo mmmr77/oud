@@ -28,7 +28,7 @@ class DataBase(metaclass=Singleton):
     def __del__(self) -> None:
         self.cursor.close()
         self.connection.close()
-    
+
     def _execute(self, command, fetchone=True, params=None):
         try:
             if params:
@@ -89,7 +89,7 @@ class DataBase(metaclass=Singleton):
 
     def search_title(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
         command = "SELECT poem.id, poem.title, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
-                   "cat.poet_id=poet.id WHERE poem.title ILIKE %s LIMIT %s OFFSET %s"
+                  "cat.poet_id=poet.id WHERE poem.title ILIKE %s LIMIT %s OFFSET %s"
         return self._execute(command, False, (f'%{text}%', limit, offset))
 
     def search_title_count(self, text: str):
@@ -122,7 +122,7 @@ class DataBase(metaclass=Singleton):
         self.connection.commit()
 
     def get_recitations(self, poem_id: int) -> list[dict]:
-        command = 'SELECT DISTINCT id, artist, recitation_type FROM poemsnd WHERE poem_id=%s ORDER BY audio_order'
+        command = 'SELECT DISTINCT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s ORDER BY audio_order'
         return self._execute(command, False, (poem_id,))
 
     def get_recitation(self, recitation_id: int) -> dict:
