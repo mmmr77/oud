@@ -1,12 +1,7 @@
 services:
   oud:
-    image:
-      oud:1.0.0
+    image: oud:1.0.0
     container_name: "oud"
     restart: always
     env_file:
       - ./.env
-    volumes:
-      - type: bind
-        source: ./ganjoor.s3db
-        target: /app/ganjoor.s3db

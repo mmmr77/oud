@@ -21,7 +21,7 @@ class Favorite:
         return InlineKeyboardButton(const.FAVORITE_REMOVE, callback_data=f'favremove:{poem_id}')
 
     @staticmethod
-    def create_favorites_messages(favorites: list[sqlite3.Row]) -> list[str]:
+    def create_favorites_messages(favorites: list[dict]) -> list[str]:
         messages = list()
         for ind, favorite in enumerate(favorites):
             number = convert_to_fa(ind + 1)
