@@ -73,10 +73,6 @@ class DataBase(metaclass=Singleton):
         command = 'SELECT id, title FROM poem WHERE cat_id=%s ORDER BY id LIMIT %s OFFSET %s'
         return self._execute(command, False, (category_id, limit, offset))
 
-    def get_category_poems_count(self, category_id: int) -> int:
-        command = 'SELECT COUNT(*) as count FROM poem WHERE cat_id=%s'
-        return self._execute(command, True, (category_id,))['count']
-
     def search_poem(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
         command = "SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
                   "JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text ILIKE %s" \
@@ -97,7 +93,7 @@ class DataBase(metaclass=Singleton):
         return self._execute(command, True, (f'%{text}%',))['count']
 
     def insert_opinion(self, *args) -> None:
-        command = 'INSERT INTO opinion (user_id, message, creation_datatime) VALUES (%s, %s, %s)'
+        command = 'INSERT INTO opinion (user_id, message, creation_datetime) VALUES (%s, %s, %s)'
         self.cursor.execute(command, args)
         self.connection.commit()
 
@@ -112,7 +108,8 @@ class DataBase(metaclass=Singleton):
 
     def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int,
                                recitation_type: int) -> None:
-        command = 'INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+        command = ('INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES '
+                   '(%s, %s, %s, %s, %s, %s, %s)')
         self.cursor.execute(command, (poem_id, id_, title, dnldurl, artist, audio_order, recitation_type))
         self.connection.commit()
 
@@ -122,7 +119,7 @@ class DataBase(metaclass=Singleton):
         self.connection.commit()
 
     def get_recitations(self, poem_id: int) -> list[dict]:
-        command = 'SELECT DISTINCT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s ORDER BY audio_order'
+        command = 'SELECT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s ORDER BY audio_order'
         return self._execute(command, False, (poem_id,))
 
     def get_recitation(self, recitation_id: int) -> dict:

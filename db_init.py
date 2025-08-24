@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     first_name VARCHAR(255),
     last_name VARCHAR(255),
     username VARCHAR(255),
-    creation_datatime TIMESTAMP
+    creation_datetime TIMESTAMP
 )
 """
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS opinion (
     id SERIAL PRIMARY KEY,
     user_id INTEGER,
     message TEXT,
-    creation_datatime TIMESTAMP,
+    creation_datetime TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES "user"(id)
 )
 """
