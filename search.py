@@ -3,10 +3,12 @@ from typing import Optional, Callable
 from persian_tools import digits
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, \
     ReplyKeyboardRemove
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
 from db import DataBase
+from elastic_db import ElasticSearchDB
 from poet import Poet
 from util import Util
 
@@ -22,7 +24,8 @@ class Search:
     @staticmethod
     @Util.send_typing_action
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, DataBase().search_poem, DataBase().search_count, 'search')
+        return await Search.search(update, context, ElasticSearchDB().perform_search, ElasticSearchDB().search_count,
+                                   'search')
 
     @staticmethod
     @Util.send_typing_action
@@ -86,7 +89,8 @@ class Search:
         if offset == 0:
             await context.bot.send_message(update.effective_chat.id, reply_markup=ReplyKeyboardRemove(),
                                      text=const.SEARCH_RESULT_COUNT.format(count=digits.convert_to_fa(total_search_count)))
-            await context.bot.send_message(update.effective_chat.id, text= message_text, reply_markup=menu)
+            await context.bot.send_message(update.effective_chat.id, text= message_text, reply_markup=menu,
+                                           parse_mode=ParseMode.HTML)
         else:
             await update.effective_message.edit_text(message_text)
             await update.effective_message.edit_reply_markup(menu)
