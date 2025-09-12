@@ -46,10 +46,11 @@ class Recitation:
     @staticmethod
     def get_recitations(poem_id: int):
         recitations = DataBase().get_recitations(poem_id)
-        artists_and_recitation_type = list(
-            map(lambda x: x["artist"] + f' ({RECITATION_TYPE.get(x["recitation_type"], RECITATION_TYPE[0])})', recitations))
-        ids = list(map(lambda x: f'recitation:{x["id"]}', recitations))
         if recitations:
+            artists_and_recitation_type = list(
+                map(lambda x: x["artist"] + f' ({RECITATION_TYPE.get(x["recitation_type"], RECITATION_TYPE[0])})',
+                    recitations))
+            ids = list(map(lambda x: f'recitation:{x["id"]}', recitations))
             keyboard = InlineKeyboardMarkup(
                 Util.create_inline_buttons(2, len(recitations), artists_and_recitation_type, ids))
             return len(recitations), keyboard

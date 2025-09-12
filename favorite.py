@@ -1,8 +1,7 @@
-import sqlite3
 from typing import Optional
 
 from persian_tools.digits import convert_to_fa
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, CopyTextButton
 from telegram.ext import ContextTypes
 
 import const
@@ -21,10 +20,10 @@ class Favorite:
         return InlineKeyboardButton(const.FAVORITE_REMOVE, callback_data=f'favremove:{poem_id}')
 
     @staticmethod
-    def create_favorites_messages(favorites: list[sqlite3.Row]) -> list[str]:
+    def create_favorites_messages(favorites: list[dict], offset: int) -> list[str]:
         messages = list()
         for ind, favorite in enumerate(favorites):
-            number = convert_to_fa(ind + 1)
+            number = convert_to_fa(ind + offset + 1)
             message = f"{number}. {Util.trim_text(favorite['title'])} - {favorite['name']}\n{Util.trim_text(favorite['text'])}"
             messages.append(message)
         return messages
@@ -51,7 +50,10 @@ class Favorite:
             DataBase().add_to_favorites(poem_id, user_id)
             await query.answer(const.FAVORITE_ADDED)
 
-        keyboard = InlineKeyboardMarkup([[Favorite.get_remove_favorites_button(poem_id)]])
+        keyboard = InlineKeyboardMarkup(
+            [[Favorite.get_remove_favorites_button(poem_id)],
+             [InlineKeyboardButton('پیوند اشتراک اثر',
+                                   copy_text=CopyTextButton(f"https://t.me/{context.bot.username}?start={poem_id}"))]])
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
@@ -66,7 +68,10 @@ class Favorite:
         else:
             await query.answer(const.FAVORITE_NOT_IN_FAVORITES)
 
-        keyboard = InlineKeyboardMarkup([[Favorite.get_add_to_favorites_button(poem_id)]])
+        keyboard = InlineKeyboardMarkup(
+            [[Favorite.get_add_to_favorites_button(poem_id)],
+             [InlineKeyboardButton('پیوند اشتراک اثر',
+                                   copy_text=CopyTextButton(f"https://t.me/{context.bot.username}?start={poem_id}"))]])
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
@@ -74,13 +79,13 @@ class Favorite:
         offset = await Favorite.get_offset(update.callback_query)
         user_id = update.effective_user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
-        all_favorites_count = DataBase().get_favorite_count(user_id)
         if not favorites:
             await context.bot.send_message(update.effective_chat.id, const.FAVORITE_NO_RESULT)
         else:
-            messages = Favorite.create_favorites_messages(favorites)
+            all_favorites_count = DataBase().get_favorite_count(user_id)
+            messages = Favorite.create_favorites_messages(favorites, offset)
             message_text = '\n\n'.join(messages)
-            button_texts = [convert_to_fa(i + 1) for i in range(len(favorites))]
+            button_texts = [convert_to_fa(i + offset + 1) for i in range(len(favorites))]
             callback_data = [f"poem:{favorite['poem_id']}" for favorite in favorites]
             buttons = Util.create_inline_buttons(4, len(favorites), button_texts, callback_data)
             last_row = []
