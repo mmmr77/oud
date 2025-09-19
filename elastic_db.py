@@ -1,5 +1,3 @@
-from typing import Optional
-
 from elasticsearch import Elasticsearch
 
 from config import settings
@@ -30,39 +28,59 @@ class ElasticSearchDB(metaclass=Singleton):
     def __del__(self) -> None:
         self.client.close()
 
-    def perform_search(self, search_text: str, offset: int, poet_filter: Optional[str] = None,
-                       limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
-        if poet_filter:
-            query_body = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "match": {
-                                    "verse_text": search_text
-                                }
+    def perform_search(self, search_text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> tuple:
+        query_body = {
+            "query": {
+                "bool": {
+                    "should": [
+                        {"match_phrase": {
+                            "verse_text": {
+                                "query": search_text,
+                                "slop": 1,
+                                "boost": 6
                             }
-                        ],
-                        "filter": [
-                            {"term": {"poet_name": poet_filter}},
-                        ]
-                    }
+                        }},
+                        {"match_phrase": {
+                            "verse_text.shingles": {
+                                "query": search_text,
+                                "slop": 0,
+                                "boost": 5
+                            }
+                        }},
+                        {"match": {
+                            "verse_text": {
+                                "query": search_text,
+                                "operator": "and",
+                                "boost": 3
+                            }
+                        }},
+                        {"match": {
+                            "verse_text": {
+                                "query": search_text,
+                                "minimum_should_match": "3<70%"
+                            }
+                        }}
+                    ],
+                    "minimum_should_match": 1
                 }
+            },
+        }
+        rescore_body = {
+            "window_size": 500,
+            "query": {
+                "rescore_query": {
+                    "match_phrase": {"verse_text": {"query": search_text, "slop": 0}}
+                },
+                "query_weight": 0.7,
+                "rescore_query_weight": 1.2
             }
-        else:
-            query_body = {
-                "query": {
-                    "match": {
-                        "verse_text": search_text
-                    }
-                }
-            }
+        }
         results = []
         try:
             response = self.client.search(index=self.index_name, body=query_body, size=limit, from_=offset, highlight={
                 "fields": {"verse_text": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}},
                 "require_field_match": False
-            })
+            }, rescore=rescore_body, min_score=9.0)
             hits = response['hits']['hits']
             for hit in hits:
                 source = hit.get("_source", {})
@@ -80,17 +98,6 @@ class ElasticSearchDB(metaclass=Singleton):
                     "score": score,
                     "text": snippet
                 })
-            return results
+            return results, response.body.get('hits', {}).get('total', {}).get('value', 0)
         except Exception as e:
             raise f"An error occurred during search: {e}"
-
-    def search_count(self, search_text: str) -> int:
-        query_body = {
-            "query": {
-                "match": {
-                    "verse_text": search_text
-                }
-            }
-        }
-        response = self.client.count(index=self.index_name, body=query_body)
-        return response['count']
