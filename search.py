@@ -3,10 +3,12 @@ from typing import Optional, Callable
 from persian_tools import digits
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, \
     ReplyKeyboardRemove
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
 from db import DataBase
+from elastic_db import ElasticSearchDB
 from poet import Poet
 from util import Util
 
@@ -22,7 +24,7 @@ class Search:
     @staticmethod
     @Util.send_typing_action
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, DataBase().search_poem, DataBase().search_count, 'search')
+        return await Search.search(update, context, ElasticSearchDB().perform_search, 'search')
 
     @staticmethod
     @Util.send_typing_action
@@ -39,8 +41,8 @@ class Search:
     @staticmethod
     async def search_destination(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["search_query"] = update.message.text
-        keyboard = ReplyKeyboardMarkup([[const.SEARCH_VERSE], [const.SEARCH_POET], [const.SEARCH_POEM_TITLE], [const.CANCEL]],
-                                       one_time_keyboard=True, resize_keyboard=True)
+        keyboard = ReplyKeyboardMarkup([[const.SEARCH_VERSE], [const.SEARCH_POET], [const.SEARCH_POEM_TITLE],
+                                        [const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_DESTINATION,
                                        reply_markup=keyboard)
         return 0
@@ -48,21 +50,24 @@ class Search:
     @staticmethod
     @Util.send_typing_action
     async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, DataBase().search_title, DataBase().search_title_count,
-                                   'searchtitle')
+        return await Search.search(update, context, DataBase().search_title,'searchtitle',
+                                   DataBase().search_title_count)
 
     @staticmethod
     @Util.send_typing_action
-    async def search(update: Update, context: ContextTypes.DEFAULT_TYPE, search_func: Callable, count_func: Callable,
-                     callback_key: str):
+    async def search(update: Update, context: ContextTypes.DEFAULT_TYPE, search_func: Callable, callback_key: str,
+                     count_func: Callable = None):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
         context.user_data.clear()
         if len(search_text) < 3:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_NOT_ENOUGH_CHARACTERS)
             return ConversationHandler.END
 
-        search_results = search_func(search_text, offset)
-        total_search_count = count_func(search_text)
+        if count_func:
+            search_results = search_func(search_text, offset)
+            total_search_count = count_func(search_text)
+        else:
+            search_results, total_search_count = search_func(search_text, offset)
         if not search_results:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_NO_RESULT)
             return ConversationHandler.END
@@ -85,14 +90,15 @@ class Search:
 
         if offset == 0:
             await context.bot.send_message(update.effective_chat.id, reply_markup=ReplyKeyboardRemove(),
-                                     text=const.SEARCH_RESULT_COUNT.format(count=digits.convert_to_fa(total_search_count)))
-            await context.bot.send_message(update.effective_chat.id, text= message_text, reply_markup=menu)
+                                           text=const.SEARCH_RESULT_COUNT.format(
+                                               count=digits.convert_to_fa(total_search_count)))
+            await context.bot.send_message(update.effective_chat.id, text=message_text, reply_markup=menu,
+                                           parse_mode=ParseMode.HTML)
         else:
-            await update.effective_message.edit_text(message_text)
+            await update.effective_message.edit_text(message_text, parse_mode=ParseMode.HTML)
             await update.effective_message.edit_reply_markup(menu)
 
         return ConversationHandler.END
-
 
     @staticmethod
     async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
