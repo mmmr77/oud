@@ -30,40 +30,38 @@ class ElasticSearchDB(metaclass=Singleton):
 
     def perform_search(self, search_text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> tuple:
         query_body = {
-            "query": {
-                "bool": {
-                    "should": [
-                        {"match_phrase": {
-                            "verse_text": {
-                                "query": search_text,
-                                "slop": 1,
-                                "boost": 6
-                            }
-                        }},
-                        {"match_phrase": {
-                            "verse_text.shingles": {
-                                "query": search_text,
-                                "slop": 0,
-                                "boost": 5
-                            }
-                        }},
-                        {"match": {
-                            "verse_text": {
-                                "query": search_text,
-                                "operator": "and",
-                                "boost": 3
-                            }
-                        }},
-                        {"match": {
-                            "verse_text": {
-                                "query": search_text,
-                                "minimum_should_match": "3<70%"
-                            }
-                        }}
-                    ],
-                    "minimum_should_match": 1
-                }
-            },
+            "bool": {
+                "should": [
+                    {"match_phrase": {
+                        "verse_text": {
+                            "query": search_text,
+                            "slop": 1,
+                            "boost": 6
+                        }
+                    }},
+                    {"match_phrase": {
+                        "verse_text.shingles": {
+                            "query": search_text,
+                            "slop": 0,
+                            "boost": 5
+                        }
+                    }},
+                    {"match": {
+                        "verse_text": {
+                            "query": search_text,
+                            "operator": "and",
+                            "boost": 3
+                        }
+                    }},
+                    {"match": {
+                        "verse_text": {
+                            "query": search_text,
+                            "minimum_should_match": "3<70%"
+                        }
+                    }}
+                ],
+                "minimum_should_match": 1
+            }
         }
         rescore_body = {
             "window_size": 500,
@@ -77,10 +75,10 @@ class ElasticSearchDB(metaclass=Singleton):
         }
         results = []
         try:
-            response = self.client.search(index=self.index_name, body=query_body, size=limit, from_=offset, highlight={
+            response = self.client.search(index=self.index_name, query=query_body, size=limit, from_=offset, highlight={
                 "fields": {"verse_text": {"pre_tags": ["<b>"], "post_tags": ["</b>"]}},
                 "require_field_match": False
-            }, rescore=rescore_body, min_score=9.0)
+            }, rescore=rescore_body, min_score=12.0)
             hits = response['hits']['hits']
             for hit in hits:
                 source = hit.get("_source", {})
@@ -90,7 +88,6 @@ class ElasticSearchDB(metaclass=Singleton):
                 score = hit.get("_score")
                 highlight_snippets = hit.get("highlight", {}).get("verse_text", [])
                 snippet = highlight_snippets[0] if highlight_snippets else source.get("verse_text", "")
-
                 results.append({
                     "id": poem_id,
                     "name": poet_name,
