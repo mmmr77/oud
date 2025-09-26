@@ -23,7 +23,7 @@ class ElasticSearchDB(metaclass=Singleton):
                 raise "Could not connect to Elasticsearch."
         except Exception as e:
             raise f"An error occurred while connecting to Elasticsearch: {e}"
-        self.index_name = "oud"
+        self.index_name = settings.ES_INDEX_NAME
 
     def __del__(self) -> None:
         self.client.close()
