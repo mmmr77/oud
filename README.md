@@ -20,7 +20,13 @@ Oud is a Telegram bot designed to bring the beauty of Persian poetry to your fin
 Oud retrieves its data from [Ganjoor](https://ganjoor.net), the largest Persian poetry archive.
 
 ## Donation
-Although Oud has an ongoing cost to keep running, its developer(s) have not yet offered a way to donate. Until then, donations are suggested to be made to [Ganjoor](https://ganjoor.net/donate), where Oud gets its data from.
+Oud is an open-source project with ongoing costs for maintenance and development. If you find Oud useful and would like to support its continued development, you can make a donation through the following link:
+
+🔗 [Support Oud](https://hamibash.com/oud)
+
+You can also support [Ganjoor](https://ganjoor.net/donate), where Oud gets its data from.
+
+Every contribution, big or small, helps keep Oud running and growing. Thank you for your support! ❤️
 
 ## Contributing
 We value your feedback! If you have ideas, suggestions, or opinions about Oud, you can share them directly with the bot using the `/opinion` command.
