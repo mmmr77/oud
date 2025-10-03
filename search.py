@@ -22,12 +22,10 @@ class Search:
         return 0, message["search_query"]
 
     @staticmethod
-    @Util.send_typing_action
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await Search.search(update, context, ElasticSearchDB().perform_search, 'search')
 
     @staticmethod
-    @Util.send_typing_action
     async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         search_text = context.user_data["search_query"]
         context.user_data.clear()
@@ -48,13 +46,11 @@ class Search:
         return 0
 
     @staticmethod
-    @Util.send_typing_action
     async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await Search.search(update, context, DataBase().search_title,'searchtitle',
                                    DataBase().search_title_count)
 
     @staticmethod
-    @Util.send_typing_action
     async def search(update: Update, context: ContextTypes.DEFAULT_TYPE, search_func: Callable, callback_key: str,
                      count_func: Callable = None):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
