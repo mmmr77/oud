@@ -55,9 +55,9 @@ class Application:
             fallbacks=[MessageHandler(filters.Regex(rf"^{const.CANCEL}$"), Search.cancel)]
         )
 
-        search_query_handler = CallbackQueryHandler(Search.search_poems, r'^search:.+:\d+$')
+        search_query_handler = CallbackQueryHandler(Search.search_poems, r'^srch:.+:\d+$')
 
-        search_title_query_handler = CallbackQueryHandler(Search.search_title, r'^searchtitle:.+:\d+$')
+        search_title_query_handler = CallbackQueryHandler(Search.search_title, r'^st:.+:\d+$')
 
         recitation_saver_audio_handler = MessageHandler(filters.AUDIO & filters.ChatType.CHANNEL,
                                                         Recitation.add_recitation_file_id_to_db)

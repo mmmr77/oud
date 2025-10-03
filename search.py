@@ -1,4 +1,5 @@
 from typing import Optional, Callable
+import hashlib
 
 from persian_tools import digits
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, \
@@ -10,6 +11,7 @@ import const
 from db import DataBase
 from elastic_db import ElasticSearchDB
 from poet import Poet
+from redis_db import RedisDB
 from util import Util
 
 
@@ -18,12 +20,16 @@ class Search:
     async def get_offset_and_search_query(query: Optional[CallbackQuery], message):
         if query:
             await query.answer()
-            return int(query.data.split(':')[2]), query.data.split(':')[1]
+            parts = query.data.split(':')
+            offset = int(parts[2])
+            search_identifier = parts[1]
+            search_text = RedisDB().get(search_identifier).decode('utf-8')
+            return offset, search_text
         return 0, message["search_query"]
 
     @staticmethod
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, ElasticSearchDB().perform_search, 'search')
+        return await Search.search(update, context, ElasticSearchDB().perform_search, 'srch')
 
     @staticmethod
     async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -47,7 +53,7 @@ class Search:
 
     @staticmethod
     async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, DataBase().search_title,'searchtitle',
+        return await Search.search(update, context, DataBase().search_title,'st',
                                    DataBase().search_title_count)
 
     @staticmethod
@@ -80,8 +86,10 @@ class Search:
                 row.append(button)
             buttons.append(row)
         if search_results_in_message + offset < total_search_count:
-            buttons.append([InlineKeyboardButton("بعدی",
-                                                 callback_data=f'{callback_key}:{search_text}:{offset + search_results_in_message}')])
+            digest_hex = hashlib.sha224(search_text.encode("utf-8")).hexdigest()
+            RedisDB().store(digest_hex, search_text)
+            next_callback_data = f'{callback_key}:{digest_hex}:{offset + search_results_in_message}'
+            buttons.append([InlineKeyboardButton("بعدی", callback_data=next_callback_data)])
         menu = InlineKeyboardMarkup(buttons)
 
         if offset == 0:
