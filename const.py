@@ -29,6 +29,8 @@ SEARCH_NO_RESULT = "هیچ نتیجه‌ای یافت نشد."
 
 SEARCH_RESULT_COUNT = "جستجوی شما {count} نتیجه داشت."
 
+SEARCH_SHOWING_TOP_RESULTS = " نمایش مرتبط‌ترین نتایج:"
+
 SEARCH_CHARACTERS_NOT_VALID = "عبارت جستجو باید دارای حداقل سه حرف و حداکثر صد حرف باشد."
 
 SEARCH_CANCEL = "جستجو لغو شد."

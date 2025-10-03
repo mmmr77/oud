@@ -1,5 +1,5 @@
-from typing import Optional, Callable
 import hashlib
+from typing import Optional, Callable
 
 from persian_tools import digits
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, \
@@ -8,6 +8,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
+from config import settings
 from db import DataBase
 from elastic_db import ElasticSearchDB
 from poet import Poet
@@ -53,7 +54,7 @@ class Search:
 
     @staticmethod
     async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        return await Search.search(update, context, DataBase().search_title,'st',
+        return await Search.search(update, context, DataBase().search_title, 'st',
                                    DataBase().search_title_count)
 
     @staticmethod
@@ -85,7 +86,7 @@ class Search:
                 button = InlineKeyboardButton(digits.convert_to_fa(result[0]), callback_data=f'poem:{result[1]}')
                 row.append(button)
             buttons.append(row)
-        if search_results_in_message + offset < total_search_count:
+        if search_results_in_message + offset < total_search_count and offset < settings.SEARCH_RESULT_PER_PAGE * 2:
             digest_hex = hashlib.sha224(search_text.encode("utf-8")).hexdigest()
             RedisDB().store(digest_hex, search_text)
             next_callback_data = f'{callback_key}:{digest_hex}:{offset + search_results_in_message}'
@@ -93,9 +94,11 @@ class Search:
         menu = InlineKeyboardMarkup(buttons)
 
         if offset == 0:
+            count_text = const.SEARCH_RESULT_COUNT.format(count=digits.convert_to_fa(total_search_count))
+            if total_search_count > settings.SEARCH_RESULT_PER_PAGE * 3:
+                count_text += const.SEARCH_SHOWING_TOP_RESULTS
             await context.bot.send_message(update.effective_chat.id, reply_markup=ReplyKeyboardRemove(),
-                                           text=const.SEARCH_RESULT_COUNT.format(
-                                               count=digits.convert_to_fa(total_search_count)))
+                                           text=count_text)
             await context.bot.send_message(update.effective_chat.id, text=message_text, reply_markup=menu,
                                            parse_mode=ParseMode.HTML)
         else:
