@@ -29,8 +29,8 @@ class Search:
     async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         search_text = context.user_data["search_query"]
         context.user_data.clear()
-        if len(search_text) < 3:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_NOT_ENOUGH_CHARACTERS,
+        if len(search_text) < 3 or len(search_text) > 100:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CHARACTERS_NOT_VALID,
                                            reply_markup=ReplyKeyboardRemove())
             return
         await Poet.poets_menu(update, context, search_text)
@@ -55,8 +55,8 @@ class Search:
                      count_func: Callable = None):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
         context.user_data.clear()
-        if len(search_text) < 3:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_NOT_ENOUGH_CHARACTERS)
+        if len(search_text) < 3 or len(search_text) > 100:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CHARACTERS_NOT_VALID)
             return ConversationHandler.END
 
         if count_func:
