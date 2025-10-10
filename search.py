@@ -24,7 +24,9 @@ class Search:
             parts = query.data.split(':')
             offset = int(parts[2])
             search_identifier = parts[1]
-            search_text = RedisDB().get(search_identifier).decode('utf-8')
+            search_text = RedisDB().get(search_identifier)
+            if search_text:
+                search_text = search_text.decode('utf-8')
             return offset, search_text
         return 0, message["search_query"]
 
@@ -62,6 +64,9 @@ class Search:
                      count_func: Callable = None):
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
         context.user_data.clear()
+        if not search_text:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_RETRY)
+            return ConversationHandler.END
         if len(search_text) < 3 or len(search_text) > 100:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CHARACTERS_NOT_VALID)
             return ConversationHandler.END

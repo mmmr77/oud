@@ -1,5 +1,7 @@
-from config import settings
 import redis
+
+from config import settings
+
 
 class Singleton(type):
     _instances = {}
@@ -28,7 +30,7 @@ class RedisDB(metaclass=Singleton):
         self.client.close()
 
     def store(self, key, value) -> None:
-        self.client.set(self.key_prefix + key, value)
+        self.client.set(self.key_prefix + key, value, ex=3 * 30 * 24 * 60 * 60)
 
     def get(self, key):
         return self.client.get(self.key_prefix + key)
