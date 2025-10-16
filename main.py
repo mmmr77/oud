@@ -14,7 +14,7 @@ if __name__ == '__main__':
     )
 
     sentry_sdk.init(
-        dsn=f"https://{settings.SENTRY_TOKEN}@{settings.SENTRY_HOST}/8059",
+        dsn=f"https://{settings.SENTRY_TOKEN}@{settings.SENTRY_HOST}/{settings.SENTRY_ID}",
         traces_sample_rate=1.0,
     )
 
