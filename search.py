@@ -110,7 +110,7 @@ class Search:
 
         menu = InlineKeyboardMarkup(buttons)
 
-        if offset == 0:
+        if offset == 0 and not update.callback_query:
             count_text = const.SEARCH_RESULT_COUNT.format(count=digits.convert_to_fa(total_search_count))
             if total_search_count > settings.SEARCH_RESULT_PER_PAGE * 3:
                 count_text += const.SEARCH_SHOWING_TOP_RESULTS
