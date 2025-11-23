@@ -4,6 +4,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHan
 import const
 from admin import Admin
 from command import Command
+from config import settings
 from favorite import Favorite
 from omen import Omen
 from opinion import Opinion
@@ -19,7 +20,12 @@ class Application:
         self.add_handlers()
 
     def start_app(self):
-        self.application.run_polling()
+        self.application.run_webhook(
+            listen="0.0.0.0",
+            port=80,
+            secret_token=settings.WEBHOOK_SECRET_TOKEN,
+            webhook_url=settings.WEBHOOK_URL,
+        )
 
     def add_handlers(self):
         start_handler = CommandHandler('start', Command.start)
