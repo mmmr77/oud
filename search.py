@@ -91,11 +91,23 @@ class Search:
                 button = InlineKeyboardButton(digits.convert_to_fa(result[0]), callback_data=f'poem:{result[1]}')
                 row.append(button)
             buttons.append(row)
+
+        digest_hex = hashlib.sha224(search_text.encode("utf-8")).hexdigest()
+        RedisDB().store(digest_hex, search_text)
+
+        navigation_buttons = []
+        if offset > 0:
+            previous_offset = max(0, offset - settings.SEARCH_RESULT_PER_PAGE)
+            previous_callback_data = f'{callback_key}:{digest_hex}:{previous_offset}'
+            navigation_buttons.append(InlineKeyboardButton("قبلی", callback_data=previous_callback_data))
+
         if search_results_in_message + offset < total_search_count and offset < settings.SEARCH_RESULT_PER_PAGE * 2:
-            digest_hex = hashlib.sha224(search_text.encode("utf-8")).hexdigest()
-            RedisDB().store(digest_hex, search_text)
             next_callback_data = f'{callback_key}:{digest_hex}:{offset + search_results_in_message}'
-            buttons.append([InlineKeyboardButton("بعدی", callback_data=next_callback_data)])
+            navigation_buttons.append(InlineKeyboardButton("بعدی", callback_data=next_callback_data))
+
+        if navigation_buttons:
+            buttons.append(navigation_buttons)
+
         menu = InlineKeyboardMarkup(buttons)
 
         if offset == 0:
