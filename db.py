@@ -169,3 +169,15 @@ class DataBase(metaclass=Singleton):
     def get_omen(self, poem_id: int) -> str:
         command = 'SELECT interpretation FROM omen WHERE poem_id=%s'
         return self._execute(command, True, (poem_id,))['interpretation']
+
+    def insert_song_data(self, poem_id: int, id_: int, title: str, artist: str, download_url: str, duration: int,
+                         source_page: str) -> None:
+        command = ('INSERT INTO song (poem_id, id, title, artist, download_url, duration, source_page)'
+                   ' VALUES (?, ?, ?, ?, ?, ?, ?)')
+        self.cursor.execute(command, (poem_id, id_, title, artist, download_url, duration, source_page))
+        self.connection.commit()
+
+    def add_song_file_id(self, file_id: str, song_id: int) -> None:
+        command = 'UPDATE song SET telegram_file_id=? WHERE id=?'
+        self.cursor.execute(command, (file_id, song_id))
+        self.connection.commit()

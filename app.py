@@ -12,6 +12,7 @@ from poem import Poem
 from poet import Poet
 from recitation import Recitation
 from search import Search
+from song import Song
 
 
 class Application:
@@ -91,9 +92,16 @@ class Application:
             states={0: [MessageHandler(filters.ALL & ~filters.Regex(rf'^{const.CANCEL}$'), Opinion.reply_to_opinion)]},
             fallbacks=[MessageHandler(filters.Regex(rf'^{const.CANCEL}$'), Opinion.cancel)])
 
+        song_saver_data_handler = MessageHandler(filters.TEXT & filters.Chat(settings.OUD_MUSIC_CHANNEL_ID),
+                                                 Song.add_song_data_to_db)
+
+        song_saver_audio_handler = MessageHandler(filters.AUDIO & filters.Chat(settings.OUD_MUSIC_CHANNEL_ID),
+                                                  Song.add_song_file_id_to_db)
+
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
              recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
              favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, reply_opinion_handler,
-             search_title_query_handler, commands_handler, search_message_handler])
+             song_saver_data_handler, song_saver_audio_handler, search_title_query_handler, commands_handler,
+             search_message_handler])
