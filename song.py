@@ -1,9 +1,10 @@
 import json
 
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 from db import DataBase
+from util import Util
 
 
 class Song:
@@ -25,3 +26,23 @@ class Song:
         file_id = update.channel_post.audio.file_id
         song_id = int(update.channel_post.caption)
         DataBase().add_song_file_id(file_id, song_id)
+
+    @staticmethod
+    def get_songs(poem_id: int):
+        songs = DataBase().get_songs(poem_id)
+        artists = list(map(lambda x: x["artist"], songs))
+        ids = list(map(lambda x: f'song:{x["id"]}', songs))
+        if songs:
+            keyboard = InlineKeyboardMarkup(Util.create_inline_buttons(2, len(songs), artists, ids))
+            return len(songs), keyboard
+        else:
+            return 0, None
+
+    @staticmethod
+    async def get_song_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        song_id = int(query.data.split(':')[1])
+        song = DataBase().get_song(song_id)
+        await context.bot.send_audio(query.from_user.id, song["telegram_file_id"], performer=song["artist"],
+                                     title=song["title"], duration=song["duration"])

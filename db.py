@@ -181,3 +181,11 @@ class DataBase(metaclass=Singleton):
         command = 'UPDATE song SET telegram_file_id=%s WHERE id=%s'
         self.cursor.execute(command, (file_id, song_id))
         self.connection.commit()
+
+    def get_songs(self, poem_id: int) -> list[dict]:
+        command = 'SELECT id, artist FROM song WHERE poem_id=%s'
+        return self._execute(command, False, (poem_id,))
+
+    def get_song(self, song_id: int) -> dict:
+        command = 'SELECT telegram_file_id, title, artist, duration FROM song WHERE id=%s'
+        return self._execute(command, True, (song_id,))

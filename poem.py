@@ -8,6 +8,7 @@ from config import settings
 from db import DataBase
 from favorite import Favorite
 from recitation import Recitation
+from song import Song
 from util import Util
 
 
@@ -44,6 +45,11 @@ class Poem:
         if recitation_count > 0:
             await context.bot.send_message(user_id,
                                            convert_to_fa(const.RECITATION_COUNT.format(count=recitation_count)),
+                                           reply_markup=keyboard)
+
+        song_count, keyboard = Song.get_songs(poem_id)
+        if song_count > 0:
+            await context.bot.send_message(user_id, convert_to_fa(const.SONG_COUNT.format(count=song_count)),
                                            reply_markup=keyboard)
 
     @staticmethod

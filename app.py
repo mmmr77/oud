@@ -76,6 +76,8 @@ class Application:
         song_saver_audio_handler = MessageHandler(filters.AUDIO & filters.Chat(settings.OUD_MUSIC_CHANNEL_ID),
                                                   Song.add_song_file_id_to_db)
 
+        song_handler = CallbackQueryHandler(Song.get_song_by_id, r'^song:\d+$')
+
         reply_opinion_handler = ConversationHandler(
             entry_points=[MessageHandler(filters.Regex(r'^/reply_\d+_\d+$'), Opinion.save_user_info)],
             states={0: [MessageHandler(filters.ALL & ~filters.Regex(rf'^{const.CANCEL}$'), Opinion.reply_to_opinion)]},
@@ -103,5 +105,5 @@ class Application:
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
              recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
              favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler,
-             song_saver_audio_handler, reply_opinion_handler, search_title_query_handler, commands_handler,
-             search_message_handler])
+             song_saver_audio_handler, song_handler, reply_opinion_handler, search_title_query_handler,
+             commands_handler, search_message_handler])
