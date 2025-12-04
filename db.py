@@ -119,7 +119,8 @@ class DataBase(metaclass=Singleton):
         self.connection.commit()
 
     def get_recitations(self, poem_id: int) -> list[dict]:
-        command = 'SELECT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s ORDER BY audio_order'
+        command = ('SELECT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s '
+                   'AND telegram_file_id IS NOT NULL ORDER BY audio_order')
         return self._execute(command, False, (poem_id,))
 
     def get_recitation(self, recitation_id: int) -> dict:
@@ -183,7 +184,7 @@ class DataBase(metaclass=Singleton):
         self.connection.commit()
 
     def get_songs(self, poem_id: int) -> list[dict]:
-        command = 'SELECT id, artist FROM song WHERE poem_id=%s'
+        command = 'SELECT id, artist FROM song WHERE poem_id=%s AND telegram_file_id IS NOT NULL'
         return self._execute(command, False, (poem_id,))
 
     def get_song(self, song_id: int) -> dict:
