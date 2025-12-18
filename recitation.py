@@ -11,13 +11,13 @@ RECITATION_TYPE = {0: 'ساده', 1: 'تفسیر'}
 
 class Recitation:
     @staticmethod
-    async def add_recitation_file_id_to_db(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def add_recitation_file_id_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE):
         file_id = update.channel_post.audio.file_id
         recitation_id = int(update.channel_post.caption)
         DataBase().add_recitation_file_id(file_id, recitation_id)
 
     @staticmethod
-    async def add_recitation_data_to_db(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def add_recitation_data_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE):
         text = update.channel_post.text
         recitation_info = json.loads(text)
         poem_id = recitation_info["poemId"]

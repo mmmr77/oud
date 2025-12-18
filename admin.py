@@ -1,6 +1,6 @@
+import asyncio
 import functools
 import logging
-import time
 
 from telegram import Update
 from telegram.error import Forbidden, RetryAfter
@@ -37,9 +37,9 @@ class Admin:
                 except Forbidden:
                     logging.warning(f"403: {user_id['id']}")
                 except RetryAfter as e:
-                    time.sleep(e.retry_after)
+                    await asyncio.sleep(e.retry_after)
                     await context.bot.copy_message(user_id['id'], update.effective_chat.id, update.message.message_id)
             offset += settings.USER_FETCH_COUNT
-            time.sleep(1)
+            await asyncio.sleep(1)
         await context.bot.send_message(update.effective_chat.id, const.ADMIN_SUCCESSFUL_SEND_TO_ALL)
         return ConversationHandler.END
