@@ -17,7 +17,7 @@ from song import Song
 
 class Application:
     def __init__(self, token: str):
-        self.application = ApplicationBuilder().token(token).build()
+        self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
         self.add_handlers()
 
     def start_app(self):
