@@ -11,13 +11,11 @@ RECITATION_TYPE = {0: 'ساده', 1: 'تفسیر'}
 
 class Recitation:
     @staticmethod
-    async def add_recitation_file_id_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE):
-        file_id = update.channel_post.audio.file_id
-        recitation_id = int(update.channel_post.caption)
-        DataBase().add_recitation_file_id(file_id, recitation_id)
+    async def add_recitation_data_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """Adds recitation metadata to the database.
 
-    @staticmethod
-    async def add_recitation_data_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE):
+        When information about a recitation is uploaded to the files channel, we save that information to the database.
+        """
         text = update.channel_post.text
         recitation_info = json.loads(text)
         poem_id = recitation_info["poemId"]
@@ -31,7 +29,22 @@ class Recitation:
                                           recitation_type)
 
     @staticmethod
-    def get_recitations(poem_id: int):
+    async def add_recitation_file_id_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """Saves the recitation file ID to the database.
+
+        After recitation metadata is uploaded to the files channel, the recitation file itself is uploaded to the
+        channel. We save the file ID of the recitation to the database.
+        """
+        file_id = update.channel_post.audio.file_id
+        recitation_id = int(update.channel_post.caption)
+        DataBase().add_recitation_file_id(file_id, recitation_id)
+
+    @staticmethod
+    def get_recitations(poem_id: int) -> tuple[int, InlineKeyboardMarkup | None]:
+        """Retrieves recitations for a poem.
+
+        After displaying the poem to the user, we display the available recitations for that poem.
+        """
         recitations = DataBase().get_recitations(poem_id)
         if recitations:
             artists_and_recitation_type = list(
@@ -45,7 +58,8 @@ class Recitation:
             return 0, None
 
     @staticmethod
-    async def get_recitation_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def get_recitation_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Sends the selected recitation to the user."""
         query = update.callback_query
         await query.answer()
         recitation_id = int(query.data.split(':')[1])

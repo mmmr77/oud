@@ -15,6 +15,16 @@ from util import Util
 class Poem:
     @staticmethod
     async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, origin_message_id: int):
+        """Displays the poem to the user.
+
+        This method can be called in six ways:
+        1) In category poems, the user taps on a poem title.
+        2) Using a share link. The start parameter of the link contains the poem ID.
+        3) In the omen section. When a random poem is selected, and it's ready to be displayed.
+        4) In search results.
+        5) In the poet's menu. Some poems exist beside some categories.
+        6) In the list of favorite poems.
+        """
         poem_text = DataBase().get_poem_text(poem_id)
         if not poem_text:
             return
@@ -23,6 +33,7 @@ class Poem:
         bot_username = context.bot.username
         messages = Util.break_long_poems(new_poem_text, poem_info, bot_username)
 
+        # Create the keyboard buttons.
         is_favorite = DataBase().check_is_favorite(poem_id, user_id)
         if is_favorite:
             button_favorite = Favorite.get_remove_favorites_button(poem_id)
@@ -34,6 +45,8 @@ class Poem:
                                    copy_text=CopyTextButton(f"https://t.me/{bot_username}?start={poem_id}"))]]
         )
 
+        # If a poem is too long and needs to be sent in more than one message, we show the keyboard only in the last
+        # message of the poem.
         for message in messages[:-1]:
             message = await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML,
                                                      reply_to_message_id=origin_message_id)
@@ -53,7 +66,7 @@ class Poem:
                                            reply_markup=keyboard)
 
     @staticmethod
-    async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
         await query.answer()
         poem_id = int(query.data.split(':')[1])
@@ -63,7 +76,12 @@ class Poem:
         await Poem.get_poem_by_id(poem_id, user_id, context, origin_message_id)
 
     @staticmethod
-    async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Displays the poems of a category.
+
+        In the poet's menu, if the user taps on a category and that category has no sub-categories, we display the poems
+        of that category. This method is also called when the user taps on previous and next buttons in category poems.
+        """
         if context.user_data:
             category_id = context.user_data['category_id']
             offset = context.user_data['offset']

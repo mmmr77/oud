@@ -27,6 +27,7 @@ class Admin:
     @staticmethod
     @admin
     async def send_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Sends a text message to all the users."""
         offset: int = 0
         user_ids = 1
         while user_ids:
