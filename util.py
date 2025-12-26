@@ -59,8 +59,8 @@ class Util:
         return messages
 
     @staticmethod
-    def create_inline_buttons(button_in_each_row: int, total_buttons: int, button_text_list: list,
-                              button_callback_data_list: list) -> list:
+    def create_inline_buttons(button_in_each_row: int, total_buttons: int, button_text_list: list[str],
+                              button_callback_data_list: list[str]) -> list[list[InlineKeyboardButton]]:
         buttons = list()
         for i in range(0, total_buttons, button_in_each_row):
             row = list()

@@ -1,10 +1,11 @@
 from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
-                          ConversationHandler)
+                          ConversationHandler, PreCheckoutQueryHandler)
 
 import const
 from admin import Admin
 from command import Command
 from config import settings
+from donation import Donate
 from favorite import Favorite
 from omen import Omen
 from opinion import Opinion
@@ -88,6 +89,11 @@ class Application:
 
         search_title_query_handler = CallbackQueryHandler(Search.search_title, r'^st:.+:\d+$')
 
+        donate_handler = CommandHandler('donate', Donate.donate_intro)
+        donate_invoice_handler = CallbackQueryHandler(Donate.donate_stars , r'^donate:\d+$')
+        donate_pre_checkout_handler = PreCheckoutQueryHandler(Donate.donate_stars_pre_checkout)
+        donate_successful_handler = MessageHandler(filters.SUCCESSFUL_PAYMENT, Donate.donate_stars_sucessful)
+
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
 
         search_message_handler = ConversationHandler(
@@ -108,5 +114,6 @@ class Application:
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
              recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
              favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler,
-             song_saver_audio_handler, song_handler, reply_opinion_handler, search_title_query_handler,
-             commands_handler, search_message_handler])
+             song_saver_audio_handler, song_handler, reply_opinion_handler, search_title_query_handler, donate_handler,
+             donate_invoice_handler, donate_pre_checkout_handler, donate_successful_handler, commands_handler,
+             search_message_handler])
