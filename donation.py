@@ -42,4 +42,4 @@ class Donate:
     @staticmethod
     async def donate_stars_sucessful(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # TODO: Store in database.
-        context.bot.send_message(update.effective_user.id, "ممنون از حمایت‌تان!")
+        await context.bot.send_message(update.effective_user.id, "ممنون از حمایت‌تان!")
