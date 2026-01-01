@@ -10,6 +10,7 @@ from poem import Poem
 class Omen:
     @staticmethod
     async def show_hafez_omen(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Displays a random poem from Qazaliat-e-Hafez along with its interpretation to the user."""
         await update.callback_query.answer()
         poet_name = 'حافظ'
         category_name = 'غزلیات'
@@ -24,6 +25,7 @@ class Omen:
 
     @staticmethod
     async def show_omen_introduction(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Displays the omen introduction message to the user."""
         keyboard = InlineKeyboardMarkup([[InlineKeyboardButton('نمایش فال', callback_data='omen')]])
         await context.bot.send_message(update.effective_user.id, const.OMEN_INTRO, reply_markup=keyboard,
                                        parse_mode=ParseMode.HTML)

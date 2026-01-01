@@ -21,6 +21,7 @@ class Favorite:
 
     @staticmethod
     def create_favorites_messages(favorites: list[dict], offset: int) -> list[str]:
+        """Creates formatted message strings for a list of favorite poems."""
         messages = list()
         for ind, favorite in enumerate(favorites):
             number = convert_to_fa(ind + offset + 1)
@@ -37,6 +38,7 @@ class Favorite:
 
     @staticmethod
     async def add_to_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Adds the poem to the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
         user_id = update.callback_query.from_user.id
@@ -58,6 +60,7 @@ class Favorite:
 
     @staticmethod
     async def remove_from_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Removes the poem from the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
         user_id = update.callback_query.from_user.id
@@ -76,6 +79,12 @@ class Favorite:
 
     @staticmethod
     async def list_of_favorite_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Displays the list of favorite poems of the user.
+
+        This method can be called in two ways:
+        1) The user sends the /favorites command.
+        2) In the list of favorite poems, the user taps on previous/next buttons.
+        """
         offset = await Favorite.get_offset(update.callback_query)
         user_id = update.effective_user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
@@ -85,9 +94,13 @@ class Favorite:
             all_favorites_count = DataBase().get_favorite_count(user_id)
             messages = Favorite.create_favorites_messages(favorites, offset)
             message_text = '\n\n'.join(messages)
+
+            # Create numbered buttons for each favorite poem.
             button_texts = [convert_to_fa(i + offset + 1) for i in range(len(favorites))]
             callback_data = [f"poem:{favorite['poem_id']}" for favorite in favorites]
             buttons = Util.create_inline_buttons(4, len(favorites), button_texts, callback_data)
+
+            # Add pagination buttons if needed.
             last_row = []
             if offset > 0:
                 last_row.append(
@@ -98,6 +111,8 @@ class Favorite:
             if last_row:
                 buttons.append(last_row)
             keyboard = InlineKeyboardMarkup(buttons)
+
+            # Send new message if called from command, otherwise edit existing message.
             if update.message:
                 await context.bot.send_message(update.effective_chat.id, message_text, reply_markup=keyboard)
             else:
