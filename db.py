@@ -184,7 +184,8 @@ class DataBase(metaclass=Singleton):
         self.connection.commit()
 
     def get_songs(self, poem_id: int) -> list[dict]:
-        command = 'SELECT id, artist FROM song WHERE poem_id=%s AND telegram_file_id IS NOT NULL'
+        command = ('SELECT distinct on (source_page) id, artist FROM song WHERE poem_id=%s AND telegram_file_id IS NOT'
+                   ' NULL')
         return self._execute(command, False, (poem_id,))
 
     def get_song(self, song_id: int) -> dict:
