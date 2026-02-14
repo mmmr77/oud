@@ -1,3 +1,5 @@
+from warnings import deprecated
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -73,12 +75,14 @@ class DataBase(metaclass=Singleton):
         command = 'SELECT id, title FROM poem WHERE cat_id=%s ORDER BY id LIMIT %s OFFSET %s'
         return self._execute(command, False, (category_id, limit, offset))
 
+    @deprecated("Use ElasticSearch instead.")
     def search_poem(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
         command = "SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
                   "JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text ILIKE %s" \
                   " LIMIT %s OFFSET %s"
         return self._execute(command, False, (f'%{text}%', limit, offset))
 
+    @deprecated("Use ElasticSearch instead.")
     def search_count(self, text: str) -> int:
         command = "SELECT COUNT(*) as count FROM verse WHERE verse.text ILIKE %s"
         return self._execute(command, True, (f'%{text}%',))['count']

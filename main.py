@@ -4,7 +4,7 @@ import sentry_sdk
 
 from app import Application
 from config import settings
-from db_init import init_database
+from db_init import upgrade_database_changes
 
 if __name__ == '__main__':
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     else:
         token = settings.TOKEN
 
-    init_database()
+    upgrade_database_changes()
 
     application = Application(token)
     application.start_app()

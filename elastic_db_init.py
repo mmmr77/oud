@@ -1,5 +1,9 @@
 INDEX_DEFINITION = {
     "settings": {
+        "index": {
+            "number_of_shards": 1,
+            "number_of_replicas": 0
+        },
         "analysis": {
             "char_filter": {
                 "persian_char_normalizer": {
@@ -74,7 +78,7 @@ INDEX_DEFINITION = {
 }
 
 
-def create_index(client, index_name):
+def create_index(client, index_name: str):
     """Creates the Elasticsearch index with the defined settings and mappings."""
     try:
         if client.indices.exists(index=index_name):

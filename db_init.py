@@ -1,81 +1,45 @@
+from __future__ import annotations
+
+from pathlib import Path
+from urllib.parse import quote_plus
+
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from alembic.config import Config
+
+from alembic import command
 from config import settings
 
-USER_TABLE = """
-CREATE TABLE IF NOT EXISTS "user" (
-    id INTEGER NOT NULL PRIMARY KEY,
-    first_name VARCHAR(255),
-    last_name VARCHAR(255),
-    username VARCHAR(255),
-    creation_datetime TIMESTAMP
-)
-"""
 
-OPINION_TABLE = """
-CREATE TABLE IF NOT EXISTS opinion (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER,
-    message TEXT,
-    creation_datetime TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES "user"(id)
-)
-"""
+def _build_alembic_config() -> Config:
+    config = Config(str(Path(__file__).with_name("alembic.ini")))
+    user = quote_plus(str(settings.DB_USER))
+    password = quote_plus(str(settings.DB_PASSWORD))
+    host = settings.DB_HOST
+    port = settings.DB_PORT
+    database = settings.DB_NAME
+    config.set_main_option("sqlalchemy.url", f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}")
+    return config
 
-OMEN_TABLE = """
-CREATE TABLE IF NOT EXISTS omen (
-    id SERIAL PRIMARY KEY,
-    poem_id INTEGER,
-    interpretation TEXT
-)
-"""
 
-SONG_TABLE = """
-CREATE TABLE IF NOT EXISTS song (
-    id INTEGER NOT NULL PRIMARY KEY,
-    poem_id INTEGER NOT NULL,
-    title TEXT,
-    artist TEXT,
-    download_url TEXT,
-    telegram_file_id TEXT,
-    duration INTEGER,
-    source_page TEXT,
-    CONSTRAINT song_poem_fk
-        FOREIGN KEY (poem_id) REFERENCES poem(id)
-        ON DELETE CASCADE
-)
-"""
+def upgrade_database_changes() -> None:
+    MIGRATION_LOCK_KEY = 734021771912345678
 
-SONG_CHECK_COLUMN = "ALTER TABLE poem ADD COLUMN IF NOT EXISTS song_last_checked TIMESTAMPTZ"
-SONG_CHECK_INDEX = ("CREATE INDEX IF NOT EXISTS idx_poem_songlastchecked ON poem (song_last_checked)"
-                    "WITH (deduplicate_items = on)")
-
-"""
-ALTER TABLE poemsnd DROP COLUMN filepath;
-ALTER TABLE poemsnd RENAME COLUMN description to title
-ALTER TABLE poemsnd RENAME COLUMN isdirect to audio_order
-ALTER TABLE poemsnd RENAME COLUMN syncguid to artist
-ALTER TABLE poemsnd RENAME COLUMN fchksum to telegram_file_id
-ALTER TABLE poemsnd RENAME COLUMN isuploaded to recitation_type
-"""
-
-"""
-ALTER TABLE fav DROP COLUMN pos;
-ALTER TABLE fav RENAME COLUMN verse_id to user_id
-"""
-
-def init_database():
     connection = psycopg2.connect(
         host=settings.DB_HOST,
         port=settings.DB_PORT,
         database=settings.DB_NAME,
         user=settings.DB_USER,
-        password=settings.DB_PASSWORD
+        password=settings.DB_PASSWORD,
     )
-    cursor = connection.cursor(cursor_factory=RealDictCursor)
-    cursor.execute(SONG_TABLE)
-    cursor.execute(SONG_CHECK_COLUMN)
-    cursor.execute(SONG_CHECK_INDEX)
-    connection.commit()
-    cursor.close()
-    connection.close()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_lock(%s)", (MIGRATION_LOCK_KEY,))
+
+        command.upgrade(_build_alembic_config(), "head")
+    finally:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_unlock(%s)", (MIGRATION_LOCK_KEY,))
+        finally:
+            connection.close()

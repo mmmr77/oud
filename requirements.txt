@@ -1,3 +1,5 @@
+SQLAlchemy==2.0.46
+alembic==1.18.4
 dynaconf==3.2.6
 elasticsearch==9.1.1
 persian-tools==0.0.11
