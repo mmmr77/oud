@@ -23,7 +23,7 @@ class Poet(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False)
     name: Mapped[str | None] = mapped_column(Text)
-    cat_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("cat.id"))
+    cat_id: Mapped[int | None] = mapped_column(BigInteger)
     description: Mapped[str | None] = mapped_column(Text)
 
 
