@@ -3,5 +3,12 @@ services:
     image: oud:1.0.0
     container_name: "oud"
     restart: always
+    networks:
+      - oud_network
     env_file:
       - ./.env
+
+networks:
+  oud_network:
+    external: true
+    name: oud_network
