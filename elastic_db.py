@@ -16,13 +16,18 @@ class ElasticSearchDB(metaclass=Singleton):
     def __init__(self) -> None:
         """Establishes a connection to the Elasticsearch."""
         try:
-            self.client = Elasticsearch(settings.ES_HOST, api_key=settings.ES_API_KEY)
+            api_key = settings.get("ES_API_KEY", "")
+            if api_key:
+                self.client = Elasticsearch(settings.ES_HOST, api_key=api_key)
+            else:
+                self.client = Elasticsearch(settings.ES_HOST)
             if self.client.ping():
                 print("Successfully connected to Elasticsearch.")
             else:
-                raise "Could not connect to Elasticsearch."
+                raise RuntimeError("Could not connect to Elasticsearch.")
         except Exception as e:
-            raise f"An error occurred while connecting to Elasticsearch: {e}"
+            raise RuntimeError(f"An error occurred while connecting to Elasticsearch: {e}") from e
+        # ES_INDEX_NAME is used as an alias that points to the current physical index.
         self.index_name = settings.ES_INDEX_NAME
 
     def __del__(self) -> None:
@@ -97,4 +102,4 @@ class ElasticSearchDB(metaclass=Singleton):
                 })
             return results, response.body.get('hits', {}).get('total', {}).get('value', 0)
         except Exception as e:
-            raise f"An error occurred during search: {e}"
+            raise RuntimeError(f"An error occurred during search: {e}") from e

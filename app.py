@@ -1,3 +1,5 @@
+from datetime import time, timezone
+
 from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
                           ConversationHandler)
 
@@ -5,6 +7,7 @@ import const
 from admin import Admin
 from command import Command
 from config import settings
+from elastic_sync import sync as sync_elasticsearch
 from favorite import Favorite
 from omen import Omen
 from opinion import Opinion
@@ -19,6 +22,7 @@ class Application:
     def __init__(self, token: str):
         self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
         self.add_handlers()
+        self.add_jobs()
 
     def start_app(self):
         if settings.DEBUG:
@@ -110,3 +114,10 @@ class Application:
              favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler,
              song_saver_audio_handler, song_handler, reply_opinion_handler, search_title_query_handler,
              commands_handler, search_message_handler])
+
+    def add_jobs(self) -> None:
+        self.application.job_queue.run_daily(
+            sync_elasticsearch,
+            time=time(hour=2, minute=0, tzinfo=timezone.utc),
+            name="daily_elasticsearch_sync",
+        )

@@ -77,15 +77,13 @@ INDEX_DEFINITION = {
     }
 }
 
-
-def create_index(client, index_name: str):
-    """Creates the Elasticsearch index with the defined settings and mappings."""
-    try:
-        if client.indices.exists(index=index_name):
-            client.indices.delete(index=index_name)
-        client.indices.create(index=index_name, body=INDEX_DEFINITION)
-    except Exception as e:
-        print(f"An error occurred during index creation: {e}")
+def create_index(client, index_name: str, *, delete_if_exists: bool = False) -> None:
+    """Creates an Elasticsearch index with Oud settings and mappings."""
+    if client.indices.exists(index=index_name):
+        if not delete_if_exists:
+            raise ValueError(f"Index '{index_name}' already exists.")
+        client.indices.delete(index=index_name)
+    client.indices.create(index=index_name, body=INDEX_DEFINITION)
 
 
 if __name__ == '__main__':
@@ -94,5 +92,5 @@ if __name__ == '__main__':
 
     client = Elasticsearch(settings.ES_HOST, api_key=settings.ES_API_KEY)
     index_name = "oud"
-    create_index(client, index_name)
+    create_index(client, index_name, delete_if_exists=True)
     client.close()
