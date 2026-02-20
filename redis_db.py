@@ -1,3 +1,5 @@
+import logging
+
 import redis
 
 from config import settings
@@ -19,11 +21,11 @@ class RedisDB(metaclass=Singleton):
             self.client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,
                                       password=settings.REDIS_PASSWORD)
             if self.client.ping():
-                print("Successfully connected to Redis.")
+                logging.info("Successfully connected to Redis.")
             else:
-                raise "Could not connect to Redis."
+                raise RuntimeError("Could not connect to Redis.")
         except Exception as e:
-            raise f"An error occurred while connecting to Redis: {e}"
+            raise RuntimeError(f"An error occurred while connecting to Redis: {e}") from e
         self.key_prefix = "q:"
 
     def __del__(self) -> None:
