@@ -1,3 +1,5 @@
+import logging
+
 from elasticsearch import Elasticsearch
 
 from config import settings
@@ -22,7 +24,7 @@ class ElasticSearchDB(metaclass=Singleton):
             else:
                 self.client = Elasticsearch(settings.ES_HOST)
             if self.client.ping():
-                print("Successfully connected to Elasticsearch.")
+                logging.info("Successfully connected to Elasticsearch.")
             else:
                 raise RuntimeError("Could not connect to Elasticsearch.")
         except Exception as e:

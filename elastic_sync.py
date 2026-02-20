@@ -138,23 +138,10 @@ def cleanup_old_indices(
     return to_delete
 
 
-def acquire_advisory_lock(conn: psycopg2.extensions.connection, lock_key: int) -> bool:
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT pg_try_advisory_lock(%s)", (lock_key,))
-        row = cursor.fetchone()
-        return bool(row[0])
-
-
-def release_advisory_lock(conn: psycopg2.extensions.connection, lock_key: int) -> None:
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT pg_advisory_unlock(%s)", (lock_key,))
-
-
 def _sync_blocking() -> int:
     alias_name = settings.ES_INDEX_NAME
     chunk_size = int(settings.get("ES_SYNC_CHUNK_SIZE", 1000))
     keep_historical = int(settings.get("ES_SYNC_KEEP_INDICES", 2))
-    lock_key = int(settings.get("ES_SYNC_LOCK_KEY", 6072026001))
 
     log_event(
         "sync_start",
@@ -165,14 +152,8 @@ def _sync_blocking() -> int:
 
     pg_conn = create_pg_connection()
     es_client = create_es_client()
-    lock_acquired = False
 
     try:
-        lock_acquired = acquire_advisory_lock(pg_conn, lock_key)
-        if not lock_acquired:
-            log_event("sync_skipped_lock_not_acquired", lock_key=lock_key)
-            return 0
-
         if not es_client.ping():
             raise RuntimeError("Could not connect to Elasticsearch.")
 
@@ -235,11 +216,6 @@ def _sync_blocking() -> int:
         log_event("sync_failed", error=str(exc))
         return 1
     finally:
-        if lock_acquired:
-            try:
-                release_advisory_lock(pg_conn, lock_key)
-            except Exception as unlock_exc:
-                log_event("lock_release_failed", error=str(unlock_exc), lock_key=lock_key)
         pg_conn.close()
         es_client.close()
 

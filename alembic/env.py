@@ -1,4 +1,3 @@
-from logging.config import fileConfig
 from urllib.parse import quote_plus
 
 from alembic import context
@@ -8,9 +7,6 @@ from sqlalchemy import pool
 from config import settings
 
 config = context.config
-
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
 
 from db_schema import Base
 
