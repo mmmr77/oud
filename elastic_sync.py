@@ -249,5 +249,11 @@ async def sync(_=None) -> int:
     return await asyncio.to_thread(_sync_blocking)
 
 
+def sync_on_startup() -> None:
+    result = _sync_blocking()
+    if result != 0:
+        raise RuntimeError("Elasticsearch startup sync failed.")
+
+
 if __name__ == "__main__":
     sys.exit(_sync_blocking())

@@ -4,7 +4,8 @@ import sentry_sdk
 
 from app import Application
 from config import settings
-from db_init import upgrade_database_changes
+from db_sync import upgrade_database_changes
+from elastic_sync import sync_on_startup
 
 if __name__ == '__main__':
 
@@ -24,6 +25,7 @@ if __name__ == '__main__':
         token = settings.TOKEN
 
     upgrade_database_changes()
+    sync_on_startup()
 
     application = Application(token)
     application.start_app()

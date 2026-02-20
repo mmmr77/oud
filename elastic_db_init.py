@@ -77,6 +77,7 @@ INDEX_DEFINITION = {
     }
 }
 
+
 def create_index(client, index_name: str, *, delete_if_exists: bool = False) -> None:
     """Creates an Elasticsearch index with Oud settings and mappings."""
     if client.indices.exists(index=index_name):
