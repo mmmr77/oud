@@ -1,5 +1,5 @@
 import asyncio
-import json
+import logging
 import sys
 from datetime import UTC, datetime
 from typing import Any, Generator
@@ -24,15 +24,7 @@ JOIN cat ON poem.cat_id = cat.id
 JOIN poet ON cat.poet_id = poet.id
 ORDER BY verse.poem_id, verse.vorder;
 """
-
-
-def log_event(event: str, **fields: Any) -> None:
-    payload = {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "event": event,
-        **fields,
-    }
-    print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+logger = logging.getLogger(__name__)
 
 
 def create_es_client() -> Elasticsearch:
@@ -138,16 +130,22 @@ def cleanup_old_indices(
     return to_delete
 
 
+def alias_or_index_exists(client: Elasticsearch, name: str) -> bool:
+    if get_alias_indices(client, name):
+        return True
+    return bool(client.indices.exists(index=name))
+
+
 def _sync_blocking() -> int:
     alias_name = settings.ES_INDEX_NAME
     chunk_size = int(settings.get("ES_SYNC_CHUNK_SIZE", 1000))
     keep_historical = int(settings.get("ES_SYNC_KEEP_INDICES", 2))
 
-    log_event(
-        "sync_start",
-        alias_name=alias_name,
-        chunk_size=chunk_size,
-        keep_historical=keep_historical,
+    logger.info(
+        "sync_start alias_name=%s chunk_size=%d keep_historical=%d",
+        alias_name,
+        chunk_size,
+        keep_historical,
     )
 
     pg_conn = create_pg_connection()
@@ -161,7 +159,7 @@ def _sync_blocking() -> int:
         physical_index_name = build_physical_index_name(alias_name)
 
         create_index(es_client, physical_index_name, delete_if_exists=False)
-        log_event("index_created", index_name=physical_index_name, verse_count=verse_count)
+        logger.info("index_created index_name=%s verse_count=%d", physical_index_name, verse_count)
 
         indexed_count = 0
         failed_count = 0
@@ -191,12 +189,12 @@ def _sync_blocking() -> int:
         es_client.indices.refresh(index=physical_index_name)
         es_count = int(es_client.count(index=physical_index_name)["count"])
 
-        log_event(
-            "indexing_finished",
-            index_name=physical_index_name,
-            indexed_count=indexed_count,
-            postgres_count=verse_count,
-            elastic_count=es_count,
+        logger.info(
+            "indexing_finished index_name=%s indexed_count=%d postgres_count=%d elastic_count=%d",
+            physical_index_name,
+            indexed_count,
+            verse_count,
+            es_count,
         )
 
         if verse_count != es_count:
@@ -205,15 +203,23 @@ def _sync_blocking() -> int:
             )
 
         cutover_alias(es_client, alias_name, physical_index_name)
-        log_event("alias_cutover_completed", alias_name=alias_name, index_name=physical_index_name)
+        logger.info(
+            "alias_cutover_completed alias_name=%s index_name=%s",
+            alias_name,
+            physical_index_name,
+        )
 
         deleted_indices = cleanup_old_indices(es_client, alias_name, keep_historical=keep_historical)
-        log_event("cleanup_completed", deleted_indices=deleted_indices, deleted_count=len(deleted_indices))
+        logger.info(
+            "cleanup_completed deleted_indices=%s deleted_count=%d",
+            deleted_indices,
+            len(deleted_indices),
+        )
 
-        log_event("sync_success", index_name=physical_index_name)
+        logger.info("sync_success index_name=%s", physical_index_name)
         return 0
     except Exception as exc:
-        log_event("sync_failed", error=str(exc))
+        logger.exception("sync_failed error=%s", exc)
         return 1
     finally:
         pg_conn.close()
@@ -226,6 +232,15 @@ async def sync(_=None) -> int:
 
 
 def sync_on_startup() -> None:
+    es_client = create_es_client()
+    if not es_client.ping():
+        raise RuntimeError("Could not connect to Elasticsearch.")
+
+    if alias_or_index_exists(es_client, settings.ES_INDEX_NAME):
+        logger.info("startup_sync_skipped_index_exists alias_name=%s", settings.ES_INDEX_NAME)
+        return
+    es_client.close()
+
     result = _sync_blocking()
     if result != 0:
         raise RuntimeError("Elasticsearch startup sync failed.")
