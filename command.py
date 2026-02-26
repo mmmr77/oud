@@ -1,13 +1,11 @@
-from datetime import datetime, UTC
-
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 import const
 from admin import admin
-from db import DataBase
 from poem import Poem
+from util import Util
 
 
 class Command:
@@ -37,13 +35,7 @@ class Command:
         information. If the command contains a number as its parameter, we also display the poem related to that number.
         """
         user_id = update.message.from_user.id
-        user = DataBase().find_user_by_id(user_id)
-        if not user:
-            first_name = update.message.from_user.first_name
-            last_name = update.message.from_user.last_name
-            username = update.message.from_user.username
-            creation_datetime = datetime.now(UTC)
-            DataBase().insert_user(user_id, first_name, last_name, username, creation_datetime)
+        Util.ensure_user_exists(update.message.from_user)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.START)
 

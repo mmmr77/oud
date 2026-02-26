@@ -41,7 +41,9 @@ class Favorite:
         """Adds the poem to the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
-        user_id = update.callback_query.from_user.id
+        user = update.callback_query.from_user
+        Util.ensure_user_exists(user)
+        user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
             await query.answer(const.FAVORITE_ALREADY_IN_FAVORITES)
@@ -63,7 +65,9 @@ class Favorite:
         """Removes the poem from the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
-        user_id = update.callback_query.from_user.id
+        user = update.callback_query.from_user
+        Util.ensure_user_exists(user)
+        user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
             DataBase().remove_from_favorites(poem_id, user_id)
@@ -86,7 +90,9 @@ class Favorite:
         2) In the list of favorite poems, the user taps on previous/next buttons.
         """
         offset = await Favorite.get_offset(update.callback_query)
-        user_id = update.effective_user.id
+        user = update.effective_user
+        Util.ensure_user_exists(user)
+        user_id = user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
         if not favorites:
             await context.bot.send_message(update.effective_chat.id, const.FAVORITE_NO_RESULT)

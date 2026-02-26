@@ -25,6 +25,7 @@ class Opinion:
         """Saves the opinion sent by the user and forwards it to the admin."""
         user_first_name = update.message.from_user.first_name
         user_id = update.message.from_user.id
+        Util.ensure_user_exists(update.message.from_user)
         message_id = update.message.id
         username = Util.create_username_with_at(update.message.from_user.username)
         message_text = update.message.text
