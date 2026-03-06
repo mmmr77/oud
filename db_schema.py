@@ -54,12 +54,14 @@ class Poem(Base):
 
 class User(Base):
     __tablename__ = "user"
+    __table_args__ = (Index("ix_user_last_seen_at", "last_seen_at"),)
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False)
     first_name: Mapped[str | None] = mapped_column(Text)
     last_name: Mapped[str | None] = mapped_column(Text)
     username: Mapped[str | None] = mapped_column(Text)
     creation_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Opinion(Base):

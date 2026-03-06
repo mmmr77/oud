@@ -1,9 +1,11 @@
 from datetime import time, timezone
 
+from telegram import Update
 from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
-                          ConversationHandler)
+                          ConversationHandler, TypeHandler)
 
 import const
+from activity_metrics import record_user_activity, refresh_active_user_metrics, start_metrics_server
 from admin import Admin
 from command import Command
 from config import settings
@@ -21,6 +23,8 @@ from song import Song
 class Application:
     def __init__(self, token: str):
         self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
+        if settings.METRICS_ENABLED:
+            start_metrics_server()
         self.add_handlers()
         self.add_jobs()
 
@@ -36,6 +40,8 @@ class Application:
             )
 
     def add_handlers(self):
+        activity_handler = TypeHandler(Update, record_user_activity)
+
         start_handler = CommandHandler('start', Command.start)
 
         opinion_handler = ConversationHandler(
@@ -107,6 +113,8 @@ class Application:
             fallbacks=[MessageHandler(filters.Regex(rf"^{const.CANCEL}$"), Search.cancel)]
         )
 
+        self.application.add_handler(activity_handler, group=-1)
+
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
              send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
@@ -121,3 +129,9 @@ class Application:
             time=time(hour=2, minute=0, tzinfo=timezone.utc),
             name="daily_elasticsearch_sync",
         )
+        if settings.METRICS_ENABLED:
+            self.application.job_queue.run_repeating(
+                refresh_active_user_metrics,
+                interval=settings.ACTIVE_USERS_REFRESH_INTERVAL_SECONDS,
+                name="active_users_metrics_refresh",
+            )

@@ -1,25 +1,14 @@
 import functools
-from datetime import UTC, datetime
 from typing import Optional
 
 from persian_tools import digits
-from telegram import InlineKeyboardButton, User
+from telegram import InlineKeyboardButton
 from telegram.constants import ChatAction
 
 import const
-from db import DataBase
 
 
 class Util:
-    @staticmethod
-    def ensure_user_exists(user: User) -> None:
-        user_id = user.id
-        if DataBase().find_user_by_id(user_id):
-            return
-
-        creation_datetime = datetime.now(UTC)
-        DataBase().insert_user(user_id, user.first_name, user.last_name, user.username, creation_datetime)
-
     @staticmethod
     def trim_search_results(results: list[dict], offset: int) -> list:
         message = list()

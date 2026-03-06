@@ -97,14 +97,24 @@ class DataBase(metaclass=Singleton):
         self.cursor.execute(command, args)
         self.connection.commit()
 
-    def find_user_by_id(self, id_: int) -> dict:
-        command = 'SELECT * FROM "user" WHERE id=%s'
-        return self._execute(command, True, (id_,))
-
-    def insert_user(self, *args) -> None:
-        command = 'INSERT INTO "user" VALUES (%s, %s, %s, %s, %s)'
-        self.cursor.execute(command, args)
+    def upsert_user_activity(self, user_id: int, first_name: str | None, last_name: str | None, username: str | None,
+                             seen_at) -> None:
+        command = (
+            'INSERT INTO "user" (id, first_name, last_name, username, creation_datetime, last_seen_at) '
+            'VALUES (%s, %s, %s, %s, %s, %s) '
+            'ON CONFLICT (id) DO UPDATE SET '
+            'first_name = EXCLUDED.first_name, '
+            'last_name = EXCLUDED.last_name, '
+            'username = EXCLUDED.username, '
+            'last_seen_at = GREATEST(COALESCE("user".last_seen_at, EXCLUDED.last_seen_at), EXCLUDED.last_seen_at)'
+        )
+        self.cursor.execute(command, (user_id, first_name, last_name, username, seen_at, seen_at))
         self.connection.commit()
+
+    def count_active_users_since(self, since_dt) -> int:
+        command = 'SELECT COUNT(*) as count FROM "user" WHERE last_seen_at >= %s'
+        result = self._execute(command, True, (since_dt,))
+        return result["count"] if result else 0
 
     def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int,
                                recitation_type: int) -> None:
