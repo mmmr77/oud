@@ -3,7 +3,7 @@ import functools
 import logging
 
 from telegram import Update
-from telegram.error import Forbidden, RetryAfter
+from telegram.error import Forbidden, RetryAfter, TelegramError
 from telegram.ext import ContextTypes, ConversationHandler
 
 import const
@@ -25,22 +25,48 @@ def admin(func):
 
 class Admin:
     @staticmethod
+    async def _deliver(context: ContextTypes.DEFAULT_TYPE, target_id: int, from_chat_id: int, message_id: int) -> str:
+        """Copies the broadcast message to a single user.
+
+        Returns 'sent', 'blocked' (the user blocked the bot), or 'failed' (any other Telegram error).
+        """
+        for attempt in range(2):
+            try:
+                await context.bot.copy_message(target_id, from_chat_id, message_id)
+                return 'sent'
+            except Forbidden:
+                return 'blocked'
+            except RetryAfter as e:
+                if attempt == 0:
+                    await asyncio.sleep(e.retry_after)
+                    continue
+                logging.warning(f"Broadcast to {target_id} still rate-limited after retry.")
+                return 'failed'
+            except TelegramError as e:
+                logging.warning(f"Broadcast to {target_id} failed: {e}")
+                return 'failed'
+        return 'failed'
+
+    @staticmethod
     @admin
     async def send_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Sends a text message to all the users."""
-        offset: int = 0
-        user_ids = 1
-        while user_ids:
-            user_ids = DataBase().get_all_users(offset=offset)
-            for user_id in user_ids:
-                try:
-                    await context.bot.copy_message(user_id['id'], update.effective_chat.id, update.message.message_id)
-                except Forbidden:
-                    logging.warning(f"403: {user_id['id']}")
-                except RetryAfter as e:
-                    await asyncio.sleep(e.retry_after)
-                    await context.bot.copy_message(user_id['id'], update.effective_chat.id, update.message.message_id)
-            offset += settings.USER_FETCH_COUNT
+        """Copies the admin's message to every user.
+
+        Per-user failures are counted and skipped. A delivery summary is sent to the admin at the end.
+        """
+        counts = {'sent': 0, 'blocked': 0, 'failed': 0}
+        offset = 0
+        while True:
+            users = DataBase().get_all_users(offset=offset)
+            if not users:
+                break
+            for user in users:
+                status = await Admin._deliver(context, user['id'], update.effective_chat.id, update.message.message_id)
+                counts[status] += 1
+            offset += len(users)
             await asyncio.sleep(1)
-        await context.bot.send_message(update.effective_chat.id, const.ADMIN_SUCCESSFUL_SEND_TO_ALL)
+
+        summary = const.ADMIN_SEND_TO_ALL_SUMMARY.format(sent=counts['sent'], blocked=counts['blocked'],
+                                                         failed=counts['failed'])
+        await context.bot.send_message(update.effective_chat.id, summary)
         return ConversationHandler.END

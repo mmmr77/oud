@@ -125,7 +125,7 @@ class DataBase(metaclass=Singleton):
                                .where(PoemSnd.id == recitation_id))
 
     def get_all_users(self, offset: int = 0, limit: int = settings.USER_FETCH_COUNT) -> list[dict]:
-        return self._fetch_all(select(User.id).limit(limit).offset(offset))
+        return self._fetch_all(select(User.id).order_by(User.id).limit(limit).offset(offset))
 
     def check_is_favorite(self, poem_id: int, user_id: int) -> bool:
         favorite = self._fetch_one(select(Fav.__table__).where(Fav.poem_id == poem_id, Fav.user_id == user_id))
@@ -148,6 +148,7 @@ class DataBase(metaclass=Singleton):
                                .join(Poet, Cat.poet_id == Poet.id)
                                .join(Verse, Verse.poem_id == Poem.id)
                                .where(Fav.user_id == user_id, Verse.vorder == 1)
+                               .order_by(Fav.poem_id)
                                .limit(limit).offset(offset))
 
     def get_random_poem(self, poem_name: str, category_name: str) -> int:
