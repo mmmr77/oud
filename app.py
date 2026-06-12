@@ -1,7 +1,10 @@
+import logging
 from datetime import time, timezone
 
+from telegram import Update
+from telegram.error import TelegramError
 from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
-                          ConversationHandler)
+                          ContextTypes, ConversationHandler)
 
 import const
 from admin import Admin
@@ -17,10 +20,28 @@ from recitation import Recitation
 from search import Search
 from song import Song
 
+logger = logging.getLogger(__name__)
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Logs handler exceptions and notifies the user that something went wrong."""
+    logger.error("Exception while handling an update", exc_info=context.error)
+
+    if not isinstance(update, Update):
+        return
+    try:
+        if update.callback_query:
+            await update.callback_query.answer()
+        if update.effective_chat:
+            await context.bot.send_message(update.effective_chat.id, const.INTERNAL_ERROR)
+    except TelegramError:
+        logger.warning("Failed to notify the user about the error.")
+
 
 class Application:
     def __init__(self, token: str):
         self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
+        self.application.add_error_handler(error_handler)
         self.add_handlers()
         self.add_jobs()
 

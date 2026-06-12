@@ -14,10 +14,10 @@ if __name__ == '__main__':
         level=logging.INFO
     )
 
-    sentry_sdk.init(
-        dsn=f"https://{settings.SENTRY_TOKEN}@{settings.SENTRY_HOST}/{settings.SENTRY_ID}",
-        traces_sample_rate=1.0,
-    )
+    # sentry_sdk.init(
+    #     dsn=f"https://{settings.SENTRY_TOKEN}@{settings.SENTRY_HOST}/{settings.SENTRY_ID}",
+    #     traces_sample_rate=1.0,
+    # )
 
     if settings.DEBUG:
         token = settings.TEST_TOKEN

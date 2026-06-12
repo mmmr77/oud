@@ -80,6 +80,8 @@ POEM = """
 
 INVALID_COMMAND = "دستور داده شده نامعتبر است."
 
+INTERNAL_ERROR = "متاسفانه مشکلی پیش آمد. لطفا کمی بعد دوباره تلاش کنید."
+
 SEND_YOUR_MESSAGE = "پیام مورد نظر خود را ارسال کنید."
 
 ADMIN_SUCCESSFUL_SEND_TO_ALL = "پیام شما ارسال شد."
