@@ -96,7 +96,7 @@ class Application:
 
         hafez_omen_intro_handler = CommandHandler('omen', Omen.show_omen_introduction)
 
-        hafez_show_omen_handler = CallbackQueryHandler(Omen.show_hafez_omen, r'^omen')
+        hafez_show_omen_handler = CallbackQueryHandler(Omen.show_hafez_omen, r'^omen$')
 
         song_saver_data_handler = MessageHandler(filters.TEXT & filters.Chat(settings.OUD_MUSIC_CHANNEL_ID),
                                                  Song.add_song_data_to_db)

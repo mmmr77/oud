@@ -66,9 +66,9 @@ class DataBase(metaclass=Singleton):
 
     def get_poem_info(self, poem_id: int) -> dict:
         return self._fetch_one(select(Poem.title, Poem.url, Poet.name)
-                     .join(Cat, Poem.cat_id == Cat.id)
-                     .join(Poet, Cat.poet_id == Poet.id)
-                     .where(Poem.id == poem_id))
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .where(Poem.id == poem_id))
 
     def get_poet_categories(self, poet_id: int, category_id: int) -> list[dict]:
         return self._fetch_all(select(Cat.id, Cat.text).where(Cat.poet_id == poet_id, Cat.parent_id == category_id))
@@ -78,26 +78,14 @@ class DataBase(metaclass=Singleton):
 
     def get_category_poems(self, category_id: int, offset: int = 0, limit: int = settings.POEM_PER_PAGE) -> list[dict]:
         return self._fetch_all(select(Poem.id, Poem.title).where(Poem.cat_id == category_id)
-                     .order_by(Poem.id).limit(limit).offset(offset))
-
-    def search_poem(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
-        return self._fetch_all(select(Poem.id, Poem.title, Verse.text, Poet.name)
-                     .select_from(Verse)
-                     .join(Poem, Verse.poem_id == Poem.id)
-                     .join(Cat, Poem.cat_id == Cat.id)
-                     .join(Poet, Cat.poet_id == Poet.id)
-                     .where(Verse.text.ilike(f'%{text}%'))
-                     .limit(limit).offset(offset))
-
-    def search_count(self, text: str) -> int:
-        return self._fetch_scalar(select(func.count()).select_from(Verse).where(Verse.text.ilike(f'%{text}%')))
+                               .order_by(Poem.id).limit(limit).offset(offset))
 
     def search_title(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
         return self._fetch_all(select(Poem.id, Poem.title, Poet.name)
-                     .join(Cat, Poem.cat_id == Cat.id)
-                     .join(Poet, Cat.poet_id == Poet.id)
-                     .where(Poem.title.ilike(f'%{text}%'))
-                     .limit(limit).offset(offset))
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .where(Poem.title.ilike(f'%{text}%'))
+                               .limit(limit).offset(offset))
 
     def search_title_count(self, text: str):
         return self._fetch_scalar(select(func.count()).select_from(Poem).where(Poem.title.ilike(f'%{text}%')))
@@ -154,13 +142,13 @@ class DataBase(metaclass=Singleton):
 
     def get_favorite_poems(self, user_id: int, offset: int, limit: int = settings.MAX_FAVORITE_PER_PAGE) -> list[dict]:
         return self._fetch_all(select(Poem.title, Poet.name, Verse.text, Fav.poem_id)
-                     .select_from(Fav)
-                     .join(Poem, Poem.id == Fav.poem_id)
-                     .join(Cat, Poem.cat_id == Cat.id)
-                     .join(Poet, Cat.poet_id == Poet.id)
-                     .join(Verse, Verse.poem_id == Poem.id)
-                     .where(Fav.user_id == user_id, Verse.vorder == 1)
-                     .limit(limit).offset(offset))
+                               .select_from(Fav)
+                               .join(Poem, Poem.id == Fav.poem_id)
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .join(Verse, Verse.poem_id == Poem.id)
+                               .where(Fav.user_id == user_id, Verse.vorder == 1)
+                               .limit(limit).offset(offset))
 
     def get_random_poem(self, poem_name: str, category_name: str) -> int:
         poet_cat_id = self._fetch_scalar(select(Cat.id).where(Cat.text == poem_name).limit(1))
@@ -181,8 +169,8 @@ class DataBase(metaclass=Singleton):
 
     def get_songs(self, poem_id: int) -> list[dict]:
         return self._fetch_all(select(Song.id, Song.artist)
-                     .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None))
-                     .distinct(Song.source_page))
+                               .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None))
+                               .distinct(Song.source_page))
 
     def get_song(self, song_id: int) -> dict:
         return self._fetch_one(select(Song.telegram_file_id, Song.title, Song.artist, Song.duration)
