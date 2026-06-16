@@ -146,8 +146,8 @@ class DataBase(metaclass=Singleton):
                                .join(Poem, Poem.id == Fav.poem_id)
                                .join(Cat, Poem.cat_id == Cat.id)
                                .join(Poet, Cat.poet_id == Poet.id)
-                               .join(Verse, Verse.poem_id == Poem.id)
-                               .where(Fav.user_id == user_id, Verse.vorder == 1)
+                               .join(Verse, (Verse.poem_id == Poem.id) & (Verse.vorder == 1))
+                               .where(Fav.user_id == user_id)
                                .order_by(Fav.poem_id)
                                .limit(limit).offset(offset))
 

@@ -27,6 +27,7 @@ class Poem:
         """
         poem_text = DataBase().get_poem_text(poem_id)
         if not poem_text:
+            await context.bot.send_message(user_id, const.POEM_NOT_FOUND)
             return
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
