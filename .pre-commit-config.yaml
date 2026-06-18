@@ -1,0 +1,9 @@
+# Run `pre-commit install` once to enable the git hook.
+# Keep `rev` in lock-step with the ruff pin in requirements-dev.txt.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      # Lint only (no --fix): a failing check aborts the commit so the author
+      # reviews and fixes the issues, then re-stages and commits.
+      - id: ruff-check
