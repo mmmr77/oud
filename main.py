@@ -1,6 +1,6 @@
 import logging
 
-import sentry_sdk
+import sentry_sdk  # noqa: F401  (kept for the commented-out sentry_sdk.init below)
 
 from app import Application
 from config import settings

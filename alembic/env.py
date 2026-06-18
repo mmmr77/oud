@@ -1,9 +1,8 @@
 from urllib.parse import quote_plus
 
-from alembic import context
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from config import settings
 
 config = context.config

@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import sys
+from collections.abc import Generator
 from datetime import UTC, datetime
-from typing import Any, Generator
+from typing import Any
 
 import psycopg2
 from elasticsearch import Elasticsearch, NotFoundError, helpers

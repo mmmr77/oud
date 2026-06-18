@@ -1,6 +1,5 @@
 import functools
 from datetime import UTC, datetime
-from typing import Optional
 
 from persian_tools import digits
 from telegram import InlineKeyboardButton, User
@@ -28,7 +27,7 @@ class Util:
                  digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name']]
             try:
                 a[2] = a[2] + '\n' + result['text']
-            except:
+            except KeyError:
                 pass
             if len(a[2]) + sum(map(lambda x: len(x[2]), message)) + 2 * len(message) <= 4096:
                 message.append(a)
@@ -82,7 +81,7 @@ class Util:
         return buttons
 
     @staticmethod
-    def create_username_with_at(username: Optional[str]) -> str:
+    def create_username_with_at(username: str | None) -> str:
         if username is None:
             username_with_at = ''
         else:

@@ -1,10 +1,17 @@
 import logging
-from datetime import time, timezone
+from datetime import UTC, time
 
 from telegram import Update
 from telegram.error import TelegramError
-from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
-                          ContextTypes, ConversationHandler)
+from telegram.ext import (
+    ApplicationBuilder,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
 import const
 from admin import Admin
@@ -139,6 +146,6 @@ class Application:
     def add_jobs(self) -> None:
         self.application.job_queue.run_daily(
             sync_elasticsearch,
-            time=time(hour=2, minute=0, tzinfo=timezone.utc),
+            time=time(hour=2, minute=0, tzinfo=UTC),
             name="daily_elasticsearch_sync",
         )

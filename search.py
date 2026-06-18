@@ -1,9 +1,15 @@
 import hashlib
-from typing import Optional, Callable
+from collections.abc import Callable
 
 from persian_tools import digits
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ReplyKeyboardMarkup, \
-    ReplyKeyboardRemove
+from telegram import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    Update,
+)
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 
@@ -18,7 +24,7 @@ from util import Util
 
 class Search:
     @staticmethod
-    async def get_offset_and_search_query(query: Optional[CallbackQuery], message):
+    async def get_offset_and_search_query(query: CallbackQuery | None, message):
         if query:
             await query.answer()
             parts = query.data.split(':')

@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: import sorting, UP: pyupgrade (modern py3.11 syntax)
+select = ["E", "F", "W", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic's env.py must configure logging/context before importing the models.
+"alembic/env.py" = ["E402"]
+# const.py holds long single-line Persian message literals that can't be wrapped.
+"const.py" = ["E501"]
+# __init__.py re-exports names, so "imported but unused" is expected there.
+"__init__.py" = ["F401"]
