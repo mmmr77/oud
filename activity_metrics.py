@@ -16,6 +16,11 @@ ACTIVE_USERS_GAUGE = Gauge(
     ["window"],
 )
 
+TOTAL_USERS_GAUGE = Gauge(
+    "oud_total_users",
+    "Total number of registered users",
+)
+
 
 async def record_user_activity(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
@@ -47,6 +52,7 @@ async def refresh_active_user_metrics(_: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         for window, since_dt in windows.items():
             ACTIVE_USERS_GAUGE.labels(window=window).set(DataBase().count_active_users_since(since_dt))
+        TOTAL_USERS_GAUGE.set(DataBase().count_users())
     except Exception:
         logger.exception("Failed to refresh active user metrics")
 
