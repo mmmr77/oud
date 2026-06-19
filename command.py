@@ -22,7 +22,7 @@ class Command:
         """Retrieves the desired general command response from the const file."""
         command_upper = command.upper()
         if command_upper in const.__all__:
-            return eval(f'const.{command_upper}')
+            return getattr(const, command_upper)
         else:
             return const.INVALID_COMMAND
 

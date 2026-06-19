@@ -1,6 +1,6 @@
 import json
 
-from telegram import Update, InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 from db import DataBase

@@ -88,8 +88,9 @@ def create_index(client, index_name: str, *, delete_if_exists: bool = False) -> 
 
 
 if __name__ == '__main__':
-    from config import settings
     from elasticsearch import Elasticsearch
+
+    from config import settings
 
     client = Elasticsearch(settings.ES_HOST, api_key=settings.ES_API_KEY)
     index_name = "oud"

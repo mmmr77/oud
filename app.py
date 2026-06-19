@@ -1,8 +1,18 @@
-from datetime import time, timezone
+import logging
+from datetime import UTC, time
 
 from telegram import Update
-from telegram.ext import (ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackQueryHandler,
-                          ConversationHandler, TypeHandler)
+from telegram.error import TelegramError
+from telegram.ext import (
+    ApplicationBuilder,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    TypeHandler,
+    filters,
+)
 
 import const
 from activity_metrics import record_user_activity, refresh_active_user_metrics, start_metrics_server
@@ -19,10 +29,28 @@ from recitation import Recitation
 from search import Search
 from song import Song
 
+logger = logging.getLogger(__name__)
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Logs handler exceptions and notifies the user that something went wrong."""
+    logger.error("Exception while handling an update", exc_info=context.error)
+
+    if not isinstance(update, Update):
+        return
+    try:
+        if update.callback_query:
+            await update.callback_query.answer()
+        if update.effective_chat:
+            await context.bot.send_message(update.effective_chat.id, const.INTERNAL_ERROR)
+    except TelegramError:
+        logger.warning("Failed to notify the user about the error.")
+
 
 class Application:
     def __init__(self, token: str):
         self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
+        self.application.add_error_handler(error_handler)
         if settings.METRICS_ENABLED:
             start_metrics_server()
         self.add_handlers()
@@ -81,7 +109,7 @@ class Application:
 
         hafez_omen_intro_handler = CommandHandler('omen', Omen.show_omen_introduction)
 
-        hafez_show_omen_handler = CallbackQueryHandler(Omen.show_hafez_omen, r'^omen')
+        hafez_show_omen_handler = CallbackQueryHandler(Omen.show_hafez_omen, r'^omen$')
 
         song_saver_data_handler = MessageHandler(filters.TEXT & filters.Chat(settings.OUD_MUSIC_CHANNEL_ID),
                                                  Song.add_song_data_to_db)
@@ -126,7 +154,7 @@ class Application:
     def add_jobs(self) -> None:
         self.application.job_queue.run_daily(
             sync_elasticsearch,
-            time=time(hour=2, minute=0, tzinfo=timezone.utc),
+            time=time(hour=2, minute=0, tzinfo=UTC),
             name="daily_elasticsearch_sync",
         )
         if settings.METRICS_ENABLED:

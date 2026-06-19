@@ -1,7 +1,16 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from urllib.parse import quote_plus
+
+from sqlalchemy import create_engine, delete, func, select, update
+from sqlalchemy.dialects.postgresql import insert
 
 from config import settings
+from db_schema import Cat, Fav, Omen, Opinion, Poem, PoemSnd, Poet, Song, User, Verse
+
+
+def _build_engine_url() -> str:
+    user = quote_plus(str(settings.DB_USER))
+    password = quote_plus(str(settings.DB_PASSWORD))
+    return f"postgresql+psycopg2://{user}:{password}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
 
 class Singleton(type):
@@ -9,93 +18,82 @@ class Singleton(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
 class DataBase(metaclass=Singleton):
     def __init__(self) -> None:
-        self.connection = psycopg2.connect(
-            host=settings.DB_HOST,
-            port=settings.DB_PORT,
-            database=settings.DB_NAME,
-            user=settings.DB_USER,
-            password=settings.DB_PASSWORD
+        self._engine = create_engine(
+            _build_engine_url(),
+            pool_size=settings.DB_POOL_SIZE,
+            max_overflow=settings.DB_POOL_MAX_OVERFLOW,
+            pool_pre_ping=True,
+            pool_recycle=1800,
         )
-        self.connection.autocommit = False
-        self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
 
-    def __del__(self) -> None:
-        self.cursor.close()
-        self.connection.close()
+    def close(self) -> None:
+        self._engine.dispose()
 
-    def _execute(self, command, fetchone=True, params=None):
-        try:
-            if params:
-                self.cursor.execute(command, params)
-            else:
-                self.cursor.execute(command)
-            return self.cursor.fetchone() if fetchone else self.cursor.fetchall()
-        except psycopg2.Error:
-            self.connection.rollback()
+    def _fetch_all(self, statement) -> list[dict]:
+        with self._engine.connect() as connection:
+            return [dict(row) for row in connection.execute(statement).mappings()]
+
+    def _fetch_one(self, statement) -> dict | None:
+        with self._engine.connect() as connection:
+            row = connection.execute(statement).mappings().first()
+            return dict(row) if row is not None else None
+
+    def _fetch_scalar(self, statement):
+        with self._engine.connect() as connection:
+            return connection.execute(statement).scalar_one()
+
+    def _execute_write(self, statement) -> None:
+        with self._engine.begin() as connection:
+            connection.execute(statement)
 
     def get_poets(self, search_text: str = None) -> list[dict]:
-        command = 'SELECT id, name, cat_id FROM poet {search}ORDER BY name'
+        statement = select(Poet.id, Poet.name, Poet.cat_id).order_by(Poet.name)
         if search_text:
-            command = command.format(search='WHERE name ILIKE %s ')
-            return self._execute(command, False, (f'%{search_text}%',))
-        else:
-            command = command.format(search='')
-            return self._execute(command, False)
+            statement = statement.where(Poet.name.ilike(f'%{search_text}%'))
+        return self._fetch_all(statement)
 
     def get_poet(self, poet_id: int) -> dict:
-        command = 'SELECT name, cat_id, description FROM poet WHERE id=%s'
-        return self._execute(command, True, (poet_id,))
+        return self._fetch_one(select(Poet.name, Poet.cat_id, Poet.description).where(Poet.id == poet_id))
 
     def get_poem_text(self, poem_id: int) -> list[dict]:
-        command = "SELECT text FROM verse WHERE poem_id=%s ORDER BY vorder"
-        return self._execute(command, False, (poem_id,))
+        return self._fetch_all(select(Verse.text).where(Verse.poem_id == poem_id).order_by(Verse.vorder))
 
     def get_poem_info(self, poem_id: int) -> dict:
-        command = "SELECT poem.title, poem.url, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
-                  "cat.poet_id=poet.id WHERE poem.id=%s"
-        return self._execute(command, True, (poem_id,))
+        return self._fetch_one(select(Poem.title, Poem.url, Poet.name)
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .where(Poem.id == poem_id))
 
     def get_poet_categories(self, poet_id: int, category_id: int) -> list[dict]:
-        command = 'SELECT id, text FROM cat WHERE poet_id=%s AND parent_id=%s'
-        return self._execute(command, False, (poet_id, category_id))
+        return self._fetch_all(select(Cat.id, Cat.text).where(Cat.poet_id == poet_id, Cat.parent_id == category_id))
 
     def get_parent_category_id(self, category_id: int) -> int:
-        command = 'SELECT parent_id FROM cat WHERE id=%s'
-        return self._execute(command, True, (category_id,))['parent_id']
+        return self._fetch_scalar(select(Cat.parent_id).where(Cat.id == category_id))
 
     def get_category_poems(self, category_id: int, offset: int = 0, limit: int = settings.POEM_PER_PAGE) -> list[dict]:
-        command = 'SELECT id, title FROM poem WHERE cat_id=%s ORDER BY id LIMIT %s OFFSET %s'
-        return self._execute(command, False, (category_id, limit, offset))
-
-    def search_poem(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
-        command = "SELECT poem.id, poem.title, verse.text, poet.name FROM verse JOIN poem ON verse.poem_id=poem.id " \
-                  "JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id WHERE verse.text ILIKE %s" \
-                  " LIMIT %s OFFSET %s"
-        return self._execute(command, False, (f'%{text}%', limit, offset))
-
-    def search_count(self, text: str) -> int:
-        command = "SELECT COUNT(*) as count FROM verse WHERE verse.text ILIKE %s"
-        return self._execute(command, True, (f'%{text}%',))['count']
+        return self._fetch_all(select(Poem.id, Poem.title).where(Poem.cat_id == category_id)
+                               .order_by(Poem.id).limit(limit).offset(offset))
 
     def search_title(self, text: str, offset: int, limit: int = settings.SEARCH_RESULT_PER_PAGE) -> list[dict]:
-        command = "SELECT poem.id, poem.title, poet.name FROM poem JOIN cat ON poem.cat_id=cat.id JOIN poet ON " \
-                  "cat.poet_id=poet.id WHERE poem.title ILIKE %s LIMIT %s OFFSET %s"
-        return self._execute(command, False, (f'%{text}%', limit, offset))
+        return self._fetch_all(select(Poem.id, Poem.title, Poet.name)
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .where(Poem.title.ilike(f'%{text}%'))
+                               .limit(limit).offset(offset))
 
     def search_title_count(self, text: str):
-        command = "SELECT COUNT(*) as count FROM poem WHERE poem.title ILIKE %s"
-        return self._execute(command, True, (f'%{text}%',))['count']
+        return self._fetch_scalar(select(func.count()).select_from(Poem).where(Poem.title.ilike(f'%{text}%')))
 
     def insert_opinion(self, *args) -> None:
-        command = 'INSERT INTO opinion (user_id, message, creation_datetime) VALUES (%s, %s, %s)'
-        self.cursor.execute(command, args)
-        self.connection.commit()
+        user_id, message, creation_datetime = args
+        self._execute_write(insert(Opinion).values(user_id=user_id, message=message,
+                                                   creation_datetime=creation_datetime))
 
     def upsert_user_activity(self, user_id: int, first_name: str | None, last_name: str | None, username: str | None,
                              seen_at) -> None:
@@ -118,86 +116,71 @@ class DataBase(metaclass=Singleton):
 
     def insert_recitation_data(self, poem_id: int, id_: int, title: str, dnldurl: str, artist: str, audio_order: int,
                                recitation_type: int) -> None:
-        command = ('INSERT INTO poemsnd (poem_id, id, title, dnldurl, artist, audio_order, recitation_type) VALUES '
-                   '(%s, %s, %s, %s, %s, %s, %s)')
-        self.cursor.execute(command, (poem_id, id_, title, dnldurl, artist, audio_order, recitation_type))
-        self.connection.commit()
+        self._execute_write(insert(PoemSnd).values(poem_id=poem_id, id=id_, title=title, dnldurl=dnldurl, artist=artist,
+                                                   audio_order=audio_order, recitation_type=recitation_type))
 
     def add_recitation_file_id(self, file_id: str, recitation_id: int) -> None:
-        command = 'UPDATE poemsnd SET telegram_file_id=%s WHERE id=%s'
-        self.cursor.execute(command, (file_id, recitation_id))
-        self.connection.commit()
+        self._execute_write(update(PoemSnd).where(PoemSnd.id == recitation_id).values(telegram_file_id=file_id))
 
     def get_recitations(self, poem_id: int) -> list[dict]:
-        command = ('SELECT id, artist, recitation_type, audio_order FROM poemsnd WHERE poem_id=%s '
-                   'AND telegram_file_id IS NOT NULL ORDER BY audio_order')
-        return self._execute(command, False, (poem_id,))
+        statement = (select(PoemSnd.id, PoemSnd.artist, PoemSnd.recitation_type, PoemSnd.audio_order)
+                     .where(PoemSnd.poem_id == poem_id, PoemSnd.telegram_file_id.is_not(None))
+                     .order_by(PoemSnd.audio_order))
+        return self._fetch_all(statement)
 
     def get_recitation(self, recitation_id: int) -> dict:
-        command = 'SELECT telegram_file_id, title, artist FROM poemsnd WHERE id=%s'
-        return self._execute(command, True, (recitation_id,))
+        return self._fetch_one(select(PoemSnd.telegram_file_id, PoemSnd.title, PoemSnd.artist)
+                               .where(PoemSnd.id == recitation_id))
 
     def get_all_users(self, offset: int = 0, limit: int = settings.USER_FETCH_COUNT) -> list[dict]:
-        command = 'SELECT id FROM "user" LIMIT %s OFFSET %s'
-        return self._execute(command, False, (limit, offset))
+        return self._fetch_all(select(User.id).order_by(User.id).limit(limit).offset(offset))
 
     def check_is_favorite(self, poem_id: int, user_id: int) -> bool:
-        command = 'SELECT * FROM fav WHERE poem_id=%s AND user_id=%s'
-        favorite = self._execute(command, True, (poem_id, user_id))
-        return True if favorite else False
+        favorite = self._fetch_one(select(Fav.__table__).where(Fav.poem_id == poem_id, Fav.user_id == user_id))
+        return favorite is not None
 
     def remove_from_favorites(self, poem_id: int, user_id: int) -> None:
-        command = 'DELETE FROM fav WHERE poem_id=%s AND user_id=%s'
-        self.cursor.execute(command, (poem_id, user_id))
-        self.connection.commit()
+        self._execute_write(delete(Fav).where(Fav.poem_id == poem_id, Fav.user_id == user_id))
 
     def add_to_favorites(self, poem_id: int, user_id: int) -> None:
-        command = 'INSERT INTO fav VALUES (%s, %s)'
-        self.cursor.execute(command, (poem_id, user_id))
-        self.connection.commit()
+        self._execute_write(insert(Fav).values(poem_id=poem_id, user_id=user_id).on_conflict_do_nothing())
 
     def get_favorite_count(self, user_id: int) -> int:
-        command = 'SELECT COUNT(*) as count FROM fav WHERE user_id=%s'
-        return self._execute(command, True, (user_id,))['count']
+        return self._fetch_scalar(select(func.count()).select_from(Fav).where(Fav.user_id == user_id))
 
     def get_favorite_poems(self, user_id: int, offset: int, limit: int = settings.MAX_FAVORITE_PER_PAGE) -> list[dict]:
-        command = ('SELECT poem.title, poet.name, verse.text, fav.poem_id FROM fav JOIN poem ON poem.id=fav.poem_id '
-                   'JOIN cat ON poem.cat_id=cat.id JOIN poet ON cat.poet_id=poet.id JOIN verse ON verse.poem_id=poem.id'
-                   ' WHERE fav.user_id=%s AND verse.vorder=1 LIMIT %s OFFSET %s')
-        return self._execute(command, False, (user_id, limit, offset))
+        return self._fetch_all(select(Poem.title, Poet.name, Verse.text, Fav.poem_id)
+                               .select_from(Fav)
+                               .join(Poem, Poem.id == Fav.poem_id)
+                               .join(Cat, Poem.cat_id == Cat.id)
+                               .join(Poet, Cat.poet_id == Poet.id)
+                               .join(Verse, (Verse.poem_id == Poem.id) & (Verse.vorder == 1))
+                               .where(Fav.user_id == user_id)
+                               .order_by(Fav.poem_id)
+                               .limit(limit).offset(offset))
 
     def get_random_poem(self, poem_name: str, category_name: str) -> int:
-        command = 'SELECT id FROM cat WHERE text=%s'
-        poet_cat_row = self._execute(command, True, (poem_name,))
-        poet_cat_id = poet_cat_row['id']
-        command = 'SELECT id FROM cat WHERE text=%s AND parent_id=%s'
-        cat_row = self._execute(command, True, (category_name, poet_cat_id))
-        cat_id = cat_row['id']
-        command = 'SELECT id FROM poem WHERE cat_id=%s ORDER BY RANDOM() LIMIT 1'
-        poem_row = self._execute(command, True, (cat_id,))
-        return poem_row['id']
+        poet_cat_id = self._fetch_scalar(select(Cat.id).where(Cat.text == poem_name).limit(1))
+        cat_id = self._fetch_scalar(select(Cat.id).where(Cat.text == category_name,
+                                                         Cat.parent_id == poet_cat_id).limit(1))
+        return self._fetch_scalar(select(Poem.id).where(Poem.cat_id == cat_id).order_by(func.random()).limit(1))
 
     def get_omen(self, poem_id: int) -> str:
-        command = 'SELECT interpretation FROM omen WHERE poem_id=%s'
-        return self._execute(command, True, (poem_id,))['interpretation']
+        return self._fetch_scalar(select(Omen.interpretation).where(Omen.poem_id == poem_id).limit(1))
 
     def insert_song_data(self, poem_id: int, id_: int, title: str, artist: str, download_url: str, duration: int,
                          source_page: str) -> None:
-        command = ('INSERT INTO song (poem_id, id, title, artist, download_url, duration, source_page)'
-                   ' VALUES (%s, %s, %s, %s, %s, %s, %s)')
-        self.cursor.execute(command, (poem_id, id_, title, artist, download_url, duration, source_page))
-        self.connection.commit()
+        self._execute_write(insert(Song).values(poem_id=poem_id, id=id_, title=title, artist=artist, duration=duration,
+                                                download_url=download_url, source_page=source_page))
 
     def add_song_file_id(self, file_id: str, song_id: int) -> None:
-        command = 'UPDATE song SET telegram_file_id=%s WHERE id=%s'
-        self.cursor.execute(command, (file_id, song_id))
-        self.connection.commit()
+        self._execute_write(update(Song).where(Song.id == song_id).values(telegram_file_id=file_id))
 
     def get_songs(self, poem_id: int) -> list[dict]:
-        command = ('SELECT distinct on (source_page) id, artist FROM song WHERE poem_id=%s AND telegram_file_id IS NOT'
-                   ' NULL')
-        return self._execute(command, False, (poem_id,))
+        return self._fetch_all(select(Song.id, Song.artist)
+                               .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None))
+                               .distinct(Song.source_page))
 
     def get_song(self, song_id: int) -> dict:
-        command = 'SELECT telegram_file_id, title, artist, duration FROM song WHERE id=%s'
-        return self._execute(command, True, (song_id,))
+        return self._fetch_one(select(Song.telegram_file_id, Song.title, Song.artist, Song.duration)
+                               .where(Song.id == song_id))

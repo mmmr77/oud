@@ -63,6 +63,8 @@ POETS = "شاعر مورد نظر خود را انتخاب کنید"
 # TODO add "{poet} - {category}" at the beginning of the message
 POEMS = "شعر مورد نظر خود را انتخاب کنید"
 
+POEM_NOT_FOUND = "شعر مورد نظر یافت نشد."
+
 POET = """
 درباره‌ی {poet}
 
@@ -80,9 +82,16 @@ POEM = """
 
 INVALID_COMMAND = "دستور داده شده نامعتبر است."
 
+INTERNAL_ERROR = "متاسفانه مشکلی پیش آمد. لطفا کمی بعد دوباره تلاش کنید."
+
 SEND_YOUR_MESSAGE = "پیام مورد نظر خود را ارسال کنید."
 
-ADMIN_SUCCESSFUL_SEND_TO_ALL = "پیام شما ارسال شد."
+ADMIN_SEND_TO_ALL_SUMMARY = """
+پیام شما ارسال شد.
+ارسال موفق: {sent}
+مسدود شده: {blocked}
+ناموفق: {failed}
+"""
 
 RECITATION_COUNT = """
 برای این اثر {count} خوانش موجود است. خوانش مورد نظر خود را انتخاب کنید.

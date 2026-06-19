@@ -1,7 +1,6 @@
-from typing import Optional
 
 from persian_tools.digits import convert_to_fa
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, CopyTextButton
+from telegram import CallbackQuery, CopyTextButton, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 import const
@@ -25,12 +24,13 @@ class Favorite:
         messages = list()
         for ind, favorite in enumerate(favorites):
             number = convert_to_fa(ind + offset + 1)
-            message = f"{number}. {Util.trim_text(favorite['title'])} - {favorite['name']}\n{Util.trim_text(favorite['text'])}"
+            title = Util.trim_text(favorite['title'])
+            message = f"{number}. {title} - {favorite['name']}\n{Util.trim_text(favorite['text'])}"
             messages.append(message)
         return messages
 
     @staticmethod
-    async def get_offset(query: Optional[CallbackQuery]) -> int:
+    async def get_offset(query: CallbackQuery | None) -> int:
         if query:
             await query.answer()
             return int(query.data.split(':')[1])
