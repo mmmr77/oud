@@ -5,7 +5,6 @@ from telegram.ext import ContextTypes
 import const
 from admin import admin
 from poem import Poem
-from util import Util
 
 
 class Command:
@@ -35,7 +34,6 @@ class Command:
         information. If the command contains a number as its parameter, we also display the poem related to that number.
         """
         user_id = update.message.from_user.id
-        Util.ensure_user_exists(update.message.from_user)
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.START)
 

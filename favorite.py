@@ -42,7 +42,6 @@ class Favorite:
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
         user = update.callback_query.from_user
-        Util.ensure_user_exists(user)
         user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
@@ -66,7 +65,6 @@ class Favorite:
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
         user = update.callback_query.from_user
-        Util.ensure_user_exists(user)
         user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
@@ -91,7 +89,6 @@ class Favorite:
         """
         offset = await Favorite.get_offset(update.callback_query)
         user = update.effective_user
-        Util.ensure_user_exists(user)
         user_id = user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
         if not favorites:
