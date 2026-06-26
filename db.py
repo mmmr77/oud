@@ -189,6 +189,8 @@ class DataBase(metaclass=Singleton):
                                .distinct(Song.source_page))
 
     def get_song_count(self, poem_id: int) -> int:
+        # COUNT(DISTINCT source_page) mirrors get_songs' DISTINCT ON (source_page) row count. This relies on
+        # source_page always being populated; a NULL source_page would make this undercount the list by one.
         return self._fetch_scalar(
             select(func.count(func.distinct(Song.source_page)))
             .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None)))
