@@ -1,4 +1,3 @@
-from persian_tools.digits import convert_to_fa
 from telegram import CopyTextButton, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
@@ -40,11 +39,23 @@ class Poem:
             button_favorite = Favorite.get_remove_favorites_button(poem_id)
         else:
             button_favorite = Favorite.get_add_to_favorites_button(poem_id)
-        keyboard = InlineKeyboardMarkup(
-            [[button_favorite],
-             [InlineKeyboardButton('پیوند اشتراک اثر',
-                                   copy_text=CopyTextButton(f"https://t.me/{bot_username}?start={poem_id}"))]]
-        )
+
+        # If recitations or songs exist, surface them as buttons (revealed on tap) above the favorite/share buttons.
+        audio_row = []
+        recitation_count = DataBase().get_recitation_count(poem_id)
+        if recitation_count > 0:
+            audio_row.append(Recitation.get_recitations_button(poem_id, recitation_count))
+        song_count = DataBase().get_song_count(poem_id)
+        if song_count > 0:
+            audio_row.append(Song.get_songs_button(poem_id, song_count))
+
+        rows = []
+        if audio_row:
+            rows.append(audio_row)
+        rows.append([button_favorite])
+        rows.append([InlineKeyboardButton('پیوند اشتراک اثر',
+                                          copy_text=CopyTextButton(f"https://t.me/{bot_username}?start={poem_id}"))])
+        keyboard = InlineKeyboardMarkup(rows)
 
         # If a poem is too long and needs to be sent in more than one message, we show the keyboard only in the last
         # message of the poem.
@@ -54,17 +65,6 @@ class Poem:
             origin_message_id = message.id
         await context.bot.send_message(user_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard,
                                        reply_to_message_id=origin_message_id)
-
-        recitation_count, keyboard = Recitation.get_recitations(poem_id)
-        if recitation_count > 0:
-            await context.bot.send_message(user_id,
-                                           convert_to_fa(const.RECITATION_COUNT.format(count=recitation_count)),
-                                           reply_markup=keyboard)
-
-        song_count, keyboard = Song.get_songs(poem_id)
-        if song_count > 0:
-            await context.bot.send_message(user_id, convert_to_fa(const.SONG_COUNT.format(count=song_count)),
-                                           reply_markup=keyboard)
 
     @staticmethod
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

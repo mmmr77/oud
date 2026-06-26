@@ -130,6 +130,11 @@ class DataBase(metaclass=Singleton):
                      .order_by(PoemSnd.audio_order))
         return self._fetch_all(statement)
 
+    def get_recitation_count(self, poem_id: int) -> int:
+        return self._fetch_scalar(
+            select(func.count()).select_from(PoemSnd)
+            .where(PoemSnd.poem_id == poem_id, PoemSnd.telegram_file_id.is_not(None)))
+
     def get_recitation(self, recitation_id: int) -> dict:
         return self._fetch_one(select(PoemSnd.telegram_file_id, PoemSnd.title, PoemSnd.artist)
                                .where(PoemSnd.id == recitation_id))
@@ -182,6 +187,13 @@ class DataBase(metaclass=Singleton):
         return self._fetch_all(select(Song.id, Song.artist)
                                .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None))
                                .distinct(Song.source_page))
+
+    def get_song_count(self, poem_id: int) -> int:
+        # COUNT(DISTINCT source_page) mirrors get_songs' DISTINCT ON (source_page) row count. This relies on
+        # source_page always being populated; a NULL source_page would make this undercount the list by one.
+        return self._fetch_scalar(
+            select(func.count(func.distinct(Song.source_page)))
+            .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None)))
 
     def get_song(self, song_id: int) -> dict:
         return self._fetch_one(select(Song.telegram_file_id, Song.title, Song.artist, Song.duration)

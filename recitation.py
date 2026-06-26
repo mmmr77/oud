@@ -1,8 +1,10 @@
 import json
 
-from telegram import InlineKeyboardMarkup, Update
+from persian_tools.digits import convert_to_fa
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
+import const
 from db import DataBase
 from util import Util
 
@@ -56,6 +58,28 @@ class Recitation:
             return len(recitations), keyboard
         else:
             return 0, None
+
+    @staticmethod
+    def get_recitations_button(poem_id: int, count: int) -> InlineKeyboardButton:
+        """Builds the button that reveals the list of recitations for a poem."""
+        return InlineKeyboardButton(convert_to_fa(const.RECITATION_BUTTON.format(count=count)),
+                                    callback_data=f'recitations:{poem_id}')
+
+    @staticmethod
+    async def show_recitations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Sends the list of available recitations when the user taps the recitations button.
+
+        The list message replies to the poem message the button belongs to.
+        """
+        query = update.callback_query
+        await query.answer()
+        poem_id = int(query.data.split(':')[1])
+        count, keyboard = Recitation.get_recitations(poem_id)
+        if count > 0:
+            await context.bot.send_message(query.from_user.id,
+                                           convert_to_fa(const.RECITATION_COUNT.format(count=count)),
+                                           reply_markup=keyboard,
+                                           reply_to_message_id=update.effective_message.id)
 
     @staticmethod
     async def get_recitation_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
