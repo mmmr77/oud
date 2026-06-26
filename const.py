@@ -102,6 +102,8 @@ RECITATION_BUTTON = "خوانش‌ها ({count}) 🎙"
 
 SONG_COUNT = """برای این اثر {count} آهنگ موجود است. آهنگ مورد نظر خود را انتخاب کنید."""
 
+SONG_BUTTON = "آهنگ‌ها ({count}) 🎵"
+
 FAVORITE_ADD = "افزودن به علاقه‌مندی‌ها ❤️"
 
 FAVORITE_ADDED = "به علاقه‌مندی‌ها اضافه شد."
