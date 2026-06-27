@@ -1,6 +1,6 @@
 
 from persian_tools.digits import convert_to_fa
-from telegram import CallbackQuery, CopyTextButton, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
 import const
@@ -17,6 +17,19 @@ class Favorite:
     @staticmethod
     def get_remove_favorites_button(poem_id: int) -> InlineKeyboardButton:
         return InlineKeyboardButton(const.FAVORITE_REMOVE, callback_data=f'favremove:{poem_id}')
+
+    @staticmethod
+    def replace_favorite_button(markup: InlineKeyboardMarkup,
+                                new_button: InlineKeyboardButton) -> InlineKeyboardMarkup:
+        """Returns a copy of the poem keyboard with only the favorite button swapped.
+
+        Toggling the favorite must flip just that one button; the recitation/song and share buttons in the keyboard have
+        to be preserved.
+        """
+        rows = [[new_button if (button.callback_data or '').startswith(('favadd:', 'favremove:')) else button
+                 for button in row]
+                for row in markup.inline_keyboard]
+        return InlineKeyboardMarkup(rows)
 
     @staticmethod
     def create_favorites_messages(favorites: list[dict], offset: int) -> list[str]:
@@ -37,7 +50,7 @@ class Favorite:
         return 0
 
     @staticmethod
-    async def add_to_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def add_to_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE):
         """Adds the poem to the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
@@ -53,14 +66,12 @@ class Favorite:
             DataBase().add_to_favorites(poem_id, user_id)
             await query.answer(const.FAVORITE_ADDED)
 
-        keyboard = InlineKeyboardMarkup(
-            [[Favorite.get_remove_favorites_button(poem_id)],
-             [InlineKeyboardButton('پیوند اشتراک اثر',
-                                   copy_text=CopyTextButton(f"https://t.me/{context.bot.username}?start={poem_id}"))]])
+        keyboard = Favorite.replace_favorite_button(update.effective_message.reply_markup,
+                                                    Favorite.get_remove_favorites_button(poem_id))
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
-    async def remove_from_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def remove_from_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE):
         """Removes the poem from the user's favorite poems."""
         query = update.callback_query
         poem_id = int(query.data.split(':')[1])
@@ -73,10 +84,8 @@ class Favorite:
         else:
             await query.answer(const.FAVORITE_NOT_IN_FAVORITES)
 
-        keyboard = InlineKeyboardMarkup(
-            [[Favorite.get_add_to_favorites_button(poem_id)],
-             [InlineKeyboardButton('پیوند اشتراک اثر',
-                                   copy_text=CopyTextButton(f"https://t.me/{context.bot.username}?start={poem_id}"))]])
+        keyboard = Favorite.replace_favorite_button(update.effective_message.reply_markup,
+                                                    Favorite.get_add_to_favorites_button(poem_id))
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
