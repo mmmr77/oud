@@ -1,5 +1,7 @@
 SQLAlchemy==2.0.46
+Telethon==1.41.2
 alembic==1.18.4
+cryptg==0.4.0
 dynaconf==3.2.13
 elasticsearch==9.1.1
 persian-tools==0.0.11
@@ -7,4 +9,5 @@ prometheus-client==0.22.1
 psycopg2-binary==2.9.9
 python-telegram-bot[webhooks,job-queue]==21.7
 redis==6.4.0
+requests==2.32.4
 sentry-sdk==2.22.0

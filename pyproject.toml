@@ -1,3 +1,8 @@
+[tool.pytest.ini_options]
+# Put the repo root on the path so tests can import the recitation_uploader package and top-level modules.
+pythonpath = ["."]
+testpaths = ["recitation_uploader/tests"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"

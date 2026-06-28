@@ -7,6 +7,8 @@ services:
       - oud_network
     env_file:
       - ./.env
+    volumes:
+      - ./my_account.session:/app/my_account.session
 
 networks:
   oud_network:

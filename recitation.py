@@ -1,5 +1,3 @@
-import json
-
 from persian_tools.digits import convert_to_fa
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
@@ -12,24 +10,6 @@ RECITATION_TYPE = {0: 'ساده', 1: 'تفسیر'}
 
 
 class Recitation:
-    @staticmethod
-    async def add_recitation_data_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """Adds recitation metadata to the database.
-
-        When information about a recitation is uploaded to the files channel, we save that information to the database.
-        """
-        text = update.channel_post.text
-        recitation_info = json.loads(text)
-        poem_id = recitation_info["poemId"]
-        id_ = recitation_info["id"]
-        audio_title = recitation_info["audioTitle"]
-        mp3_url = recitation_info["mp3Url"]
-        audio_artist = recitation_info["audioArtist"]
-        audio_order = recitation_info["audioOrder"]
-        recitation_type = recitation_info["recitationType"]
-        DataBase().insert_recitation_data(poem_id, id_, audio_title, mp3_url, audio_artist, audio_order,
-                                          recitation_type)
-
     @staticmethod
     async def add_recitation_file_id_to_db(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """Saves the recitation file ID to the database.

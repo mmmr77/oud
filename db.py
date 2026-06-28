@@ -139,6 +139,22 @@ class DataBase(metaclass=Singleton):
         return self._fetch_one(select(PoemSnd.telegram_file_id, PoemSnd.title, PoemSnd.artist)
                                .where(PoemSnd.id == recitation_id))
 
+    def get_existing_poem_ids(self) -> set[int]:
+        """Returns the ids of every poem, used by the uploader to skip recitations of unknown poems."""
+        return {row["id"] for row in self._fetch_all(select(Poem.id))}
+
+    def get_recitation_status(self) -> tuple[set[int], set[int]]:
+        """Returns (done_ids, incomplete_ids) from poemsnd.
+
+        done_ids:       rows whose telegram_file_id is set (fully uploaded)
+        incomplete_ids: rows whose telegram_file_id is NULL (metadata only, awaiting audio)
+        """
+        done: set[int] = set()
+        incomplete: set[int] = set()
+        for row in self._fetch_all(select(PoemSnd.id, PoemSnd.telegram_file_id)):
+            (done if row["telegram_file_id"] is not None else incomplete).add(row["id"])
+        return done, incomplete
+
     def get_all_users(self, offset: int = 0, limit: int = settings.USER_FETCH_COUNT) -> list[dict]:
         return self._fetch_all(select(User.id).order_by(User.id).limit(limit).offset(offset))
 

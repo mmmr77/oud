@@ -372,3 +372,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### Telethon ###
+# User-account session for the recitation upload job.
+*.session
+*.session-journal

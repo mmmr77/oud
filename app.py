@@ -26,6 +26,7 @@ from opinion import Opinion
 from poem import Poem
 from poet import Poet
 from recitation import Recitation
+from recitation_uploader.job import run_upload_job
 from search import Search
 from song import Song
 
@@ -89,9 +90,6 @@ class Application:
                                                   states={0: [MessageHandler(filters.TEXT, Admin.send_to_all)]},
                                                   fallbacks=[])
 
-        recitation_saver_data_handler = MessageHandler(filters.TEXT & filters.Chat(settings.OUD_FILES_CHANNEL_ID),
-                                                       Recitation.add_recitation_data_to_db)
-
         recitation_saver_audio_handler = MessageHandler(filters.AUDIO & filters.Chat(settings.OUD_FILES_CHANNEL_ID),
                                                         Recitation.add_recitation_file_id_to_db)
 
@@ -149,11 +147,11 @@ class Application:
 
         self.application.add_handlers(
             [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
-             send_to_all_handler, recitation_saver_data_handler, recitation_saver_audio_handler, search_query_handler,
-             recitation_handler, favorite_add_handler, favorite_remove_handler, favorite_poems_handler,
-             favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler,
-             song_saver_audio_handler, song_handler, recitations_handler, songs_handler, reply_opinion_handler,
-             search_title_query_handler, commands_handler, search_message_handler])
+             send_to_all_handler, recitation_saver_audio_handler, search_query_handler, recitation_handler,
+             favorite_add_handler, favorite_remove_handler, favorite_poems_handler, favorite_poems_query_handler,
+             hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler, song_saver_audio_handler,
+             song_handler, recitations_handler, songs_handler, reply_opinion_handler, search_title_query_handler,
+             commands_handler, search_message_handler])
 
     def add_jobs(self) -> None:
         self.application.job_queue.run_daily(
@@ -161,6 +159,12 @@ class Application:
             time=time(hour=2, minute=0, tzinfo=UTC),
             name="daily_elasticsearch_sync",
         )
+        if settings.RECITATION_UPLOAD_ENABLED:
+            self.application.job_queue.run_daily(
+                run_upload_job,
+                time=time(hour=1, minute=0, tzinfo=UTC),
+                name="daily_recitation_upload",
+            )
         if settings.METRICS_ENABLED:
             self.application.job_queue.run_repeating(
                 refresh_active_user_metrics,

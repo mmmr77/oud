@@ -24,6 +24,8 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/*.session
+**/*.session-journal
 LICENSE
 README.md
 sample_data.sql
