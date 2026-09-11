@@ -99,7 +99,10 @@ class Poem:
             offset = int(query.data.split(':')[2])
 
         assert update.effective_message is not None and update.effective_user is not None
-        poems: list = DataBase().get_category_poems(category_id, offset)
+        # Fetch one extra poem to know whether there is a next page without a separate count query.
+        poems: list = DataBase().get_category_poems(category_id, offset, settings.POEM_PER_PAGE + 1)
+        has_next_page = len(poems) > settings.POEM_PER_PAGE
+        poems = poems[:settings.POEM_PER_PAGE]
         buttons = list()
         for i in range(0, len(poems), 2):
             row = list()
@@ -112,7 +115,7 @@ class Poem:
         if offset != 0:
             last_row.append(
                 InlineKeyboardButton("قبلی", callback_data=f'category:{category_id}:{offset - settings.POEM_PER_PAGE}'))
-        if len(poems) == settings.POEM_PER_PAGE:
+        if has_next_page:
             last_row.append(
                 InlineKeyboardButton("بعدی", callback_data=f'category:{category_id}:{offset + settings.POEM_PER_PAGE}'))
         if last_row:
