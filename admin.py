@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import logging
+from collections.abc import Callable
 
 from telegram import Update
 from telegram.error import Forbidden, RetryAfter, TelegramError
@@ -11,9 +12,11 @@ from config import settings
 from db import DataBase
 
 
-def admin(func):
+def admin(func: Callable) -> Callable:
     @functools.wraps(func)
-    async def wrapper_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def wrapper_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        assert update.message is not None and update.message.from_user is not None
+        assert update.effective_chat is not None
         if update.message.from_user.id == settings.ADMIN_CHAT_ID:
             result = await func(update, context)
             return result
@@ -49,11 +52,12 @@ class Admin:
 
     @staticmethod
     @admin
-    async def send_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def send_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Copies the admin's message to every user.
 
         Per-user failures are counted and skipped. A delivery summary is sent to the admin at the end.
         """
+        assert update.effective_chat is not None and update.message is not None
         counts = {'sent': 0, 'blocked': 0, 'failed': 0}
         offset = 0
         while True:

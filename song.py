@@ -16,6 +16,7 @@ class Song:
 
         When information about a song is uploaded to the music channel, we save that information to the database.
         """
+        assert update.channel_post is not None and update.channel_post.text is not None
         text = update.channel_post.text
         song_info = json.loads(text)
         poem_id = song_info.get("poem_id")
@@ -34,6 +35,8 @@ class Song:
         After song metadata is uploaded to the music channel, the song file itself is uploaded to the channel. We save
         the file ID of the song to the database.
         """
+        assert update.channel_post is not None and update.channel_post.audio is not None
+        assert update.channel_post.caption is not None
         file_id = update.channel_post.audio.file_id
         song_id = int(update.channel_post.caption)
         DataBase().add_song_file_id(file_id, song_id)
@@ -66,6 +69,8 @@ class Song:
         The list message replies to the poem message the button belongs to.
         """
         query = update.callback_query
+        assert query is not None and query.data is not None
+        assert update.effective_message is not None
         await query.answer()
         poem_id = int(query.data.split(':')[1])
         count, keyboard = Song.get_songs(poem_id)
@@ -79,8 +84,10 @@ class Song:
     async def get_song_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Sends the selected song to the user."""
         query = update.callback_query
+        assert query is not None and query.data is not None
         await query.answer()
         song_id = int(query.data.split(':')[1])
         song = DataBase().get_song(song_id)
+        assert song is not None
         await context.bot.send_audio(query.from_user.id, song["telegram_file_id"], performer=song["artist"],
                                      title=song["title"], duration=song["duration"])

@@ -2,3 +2,4 @@
 # Install with: pip install -r requirements-dev.txt
 ruff==0.15.17
 pre-commit==4.6.0
+pyrefly==1.1.1

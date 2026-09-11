@@ -49,7 +49,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 class Application:
-    def __init__(self, token: str):
+    def __init__(self, token: str) -> None:
         self.application = ApplicationBuilder().token(token).concurrent_updates(True).build()
         self.application.add_error_handler(error_handler)
         if settings.METRICS_ENABLED:
@@ -57,7 +57,7 @@ class Application:
         self.add_handlers()
         self.add_jobs()
 
-    def start_app(self):
+    def start_app(self) -> None:
         if settings.DEBUG:
             self.application.run_polling()
         else:
@@ -68,7 +68,7 @@ class Application:
                 webhook_url=settings.WEBHOOK_URL,
             )
 
-    def add_handlers(self):
+    def add_handlers(self) -> None:
         activity_handler = TypeHandler(Update, record_user_activity)
 
         start_handler = CommandHandler('start', Command.start)
@@ -154,6 +154,7 @@ class Application:
              commands_handler, search_message_handler])
 
     def add_jobs(self) -> None:
+        assert self.application.job_queue is not None
         self.application.job_queue.run_daily(
             sync_elasticsearch,
             time=time(hour=2, minute=0, tzinfo=UTC),

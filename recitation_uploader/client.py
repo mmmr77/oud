@@ -1,5 +1,8 @@
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
+from types import TracebackType
+from typing import Any
 
 from telethon import TelegramClient
 from telethon.errors import FloodWaitError
@@ -29,15 +32,20 @@ class RecitationUploader:
         # missing/expired, which must never happen in a headless container. Guard explicitly.
         await self._client.connect()
         if not await self._client.is_user_authorized():
-            await self._client.disconnect()
+            disconnect = self._client.disconnect()
+            if disconnect is not None:
+                await disconnect
             raise RuntimeError("Telethon session is not authorized; provide a valid my_account.session")
         return self
 
-    async def __aexit__(self, exc_type, exc, tb) -> None:
-        await self._client.disconnect()
+    async def __aexit__(self, exc_type: type[BaseException] | None, exc: BaseException | None,
+                        tb: TracebackType | None) -> None:
+        disconnect = self._client.disconnect()
+        if disconnect is not None:
+            await disconnect
 
     @staticmethod
-    async def _with_flood_retry(send):
+    async def _with_flood_retry(send: Callable[[], Awaitable[Any]]) -> Any:
         for attempt in range(1, MAX_FLOOD_RETRIES + 1):
             try:
                 return await send()
@@ -51,7 +59,7 @@ class RecitationUploader:
         raise RuntimeError(f"exceeded {MAX_FLOOD_RETRIES} flood-wait retries")
 
     async def upload_audio(self, audio: bytes, file_name: str, recitation: Recitation) -> None:
-        async def _send():
+        async def _send() -> None:
             uploaded = await self._client.upload_file(audio, file_name=file_name)
             await self._client.send_file(
                 settings.OUD_FILES_CHANNEL_ID,

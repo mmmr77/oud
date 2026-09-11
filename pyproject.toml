@@ -3,13 +3,27 @@
 pythonpath = ["."]
 testpaths = ["recitation_uploader/tests"]
 
+[tool.pyrefly]
+python-version = "3.11"
+preset = "default"
+# Explicit excludes (this replaces pyrefly's default set, so venv/__pycache__ are listed here too).
+project-excludes = [
+    "venv/**",
+    "**/__pycache__/**",
+    "alembic/versions/**",      # generated migrations
+    "recitation_uploader/tests/**",  # tests exempt from the type gate
+]
+# persian_tools ships no usable type information; treat it as Any instead of emitting false positives.
+replace-imports-with-any = ["persian_tools", "persian_tools.*"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
-# E/W: pycodestyle, F: pyflakes, I: import sorting, UP: pyupgrade (modern py3.11 syntax)
-select = ["E", "F", "W", "I", "UP"]
+# E/W: pycodestyle, F: pyflakes, I: import sorting, UP: pyupgrade (modern py3.11 syntax),
+# ANN*: flake8-annotations (annotation presence; ANN401/self+cls rules deliberately excluded).
+select = ["E", "F", "W", "I", "UP", "ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN204", "ANN205", "ANN206"]
 
 [tool.ruff.lint.per-file-ignores]
 # Alembic's env.py must configure logging/context before importing the models.
@@ -18,3 +32,5 @@ select = ["E", "F", "W", "I", "UP"]
 "const.py" = ["E501"]
 # __init__.py re-exports names, so "imported but unused" is expected there.
 "__init__.py" = ["F401"]
+# Test functions don't need annotations.
+"recitation_uploader/tests/**" = ["ANN"]

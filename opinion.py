@@ -14,15 +14,18 @@ from util import Util
 
 class Opinion:
     @staticmethod
-    async def opinion(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def opinion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Displays the opinion introduction message to the user."""
+        assert update.effective_chat is not None
         keyboard = ReplyKeyboardMarkup([[const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION, reply_markup=keyboard)
         return 0
 
     @staticmethod
-    async def opinion_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def opinion_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Saves the opinion sent by the user and forwards it to the admin."""
+        assert update.message is not None and update.message.from_user is not None
+        assert update.effective_chat is not None
         user_first_name = update.message.from_user.first_name
         user_id = update.message.from_user.id
         message_id = update.message.id
@@ -41,16 +44,19 @@ class Opinion:
         return ConversationHandler.END
 
     @staticmethod
-    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Cancels the opinion conversation."""
+        assert update.effective_chat is not None
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION_CANCEL,
                                        reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
 
     @staticmethod
     @admin
-    async def save_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def save_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Starts the reply-to-opinion conversation by saving the opinion sender info."""
+        assert update.message is not None and update.message.text is not None
+        assert update.effective_user is not None and context.user_data is not None
         keyboard = ReplyKeyboardMarkup([[const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
         _, user_id, message_id = update.message.text.split('_')
         context.user_data["user_id"] = user_id
@@ -60,11 +66,13 @@ class Opinion:
 
     @staticmethod
     @admin
-    async def reply_to_opinion(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def reply_to_opinion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Sends the response to the opinion from the admin to the user who sent the opinion.
 
         The response can be text, voice, document, or sticker.
         """
+        assert context.user_data is not None
+        assert update.message is not None and update.effective_chat is not None
         user_id = context.user_data["user_id"]
         message_id = context.user_data["message_id"]
         context.user_data.clear()

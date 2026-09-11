@@ -17,6 +17,8 @@ class Recitation:
         After recitation metadata is uploaded to the files channel, the recitation file itself is uploaded to the
         channel. We save the file ID of the recitation to the database.
         """
+        assert update.channel_post is not None and update.channel_post.audio is not None
+        assert update.channel_post.caption is not None
         file_id = update.channel_post.audio.file_id
         recitation_id = int(update.channel_post.caption)
         DataBase().add_recitation_file_id(file_id, recitation_id)
@@ -52,6 +54,8 @@ class Recitation:
         The list message replies to the poem message the button belongs to.
         """
         query = update.callback_query
+        assert query is not None and query.data is not None
+        assert update.effective_message is not None
         await query.answer()
         poem_id = int(query.data.split(':')[1])
         count, keyboard = Recitation.get_recitations(poem_id)
@@ -65,8 +69,10 @@ class Recitation:
     async def get_recitation_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Sends the selected recitation to the user."""
         query = update.callback_query
+        assert query is not None and query.data is not None
         await query.answer()
         recitation_id = int(query.data.split(':')[1])
         recitation = DataBase().get_recitation(recitation_id)
+        assert recitation is not None
         await context.bot.send_audio(query.from_user.id, recitation["telegram_file_id"], performer=recitation["artist"],
                                      title=recitation["title"])

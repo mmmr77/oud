@@ -9,16 +9,18 @@ from poem import Poem
 
 class Command:
     @staticmethod
-    async def general_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def general_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handles simple commands.
 
         A simple command is a command that requires no processing, and we just send the desired response to the user.
         """
+        assert update.message is not None and update.message.text is not None
+        assert update.effective_chat is not None
         response = Command.get_general_commands_response(update.message.text[1:])
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)
 
     @staticmethod
-    def get_general_commands_response(command: str):
+    def get_general_commands_response(command: str) -> str:
         """Retrieves the desired general command response from the const file."""
         command_upper = command.upper()
         if command_upper in const.__all__:
@@ -27,12 +29,14 @@ class Command:
             return const.INVALID_COMMAND
 
     @staticmethod
-    async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handles the start command.
 
         Displays the welcome message to the user. If it is the first time the user is using the bot, we save the user
         information. If the command contains a number as its parameter, we also display the poem related to that number.
         """
+        assert update.message is not None and update.message.from_user is not None
+        assert update.effective_chat is not None and update.effective_message is not None
         user_id = update.message.from_user.id
 
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.START)
@@ -43,7 +47,8 @@ class Command:
 
     @staticmethod
     @admin
-    async def sendtoall(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def sendtoall(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Sends the broadcast introduction message to the admin user."""
+        assert update.effective_chat is not None
         await context.bot.send_message(update.effective_chat.id, text=const.SEND_YOUR_MESSAGE)
         return 0

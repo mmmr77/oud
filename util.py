@@ -1,8 +1,7 @@
-import functools
+from typing import Any
 
 from persian_tools import digits
 from telegram import InlineKeyboardButton
-from telegram.constants import ChatAction
 
 import const
 
@@ -12,8 +11,8 @@ class Util:
     def trim_search_results(results: list[dict], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
-            a = [i + 1 + offset, result['id'],
-                 digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name']]
+            a: list[Any] = [i + 1 + offset, result['id'],
+                            digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name']]
             try:
                 a[2] = a[2] + '\n' + result['text']
             except KeyError:
@@ -83,12 +82,3 @@ class Util:
             return text
         ind = text.rfind(' ', 0, max_length)
         return text[: ind] + '...'
-
-    @staticmethod
-    def send_typing_action(func):
-        @functools.wraps(func)
-        async def wrapper_send_typing_action(update, context, *args, **kwargs):
-            await context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
-            return await func(update, context, *args, **kwargs)
-
-        return wrapper_send_typing_action

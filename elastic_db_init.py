@@ -1,3 +1,5 @@
+from elasticsearch import Elasticsearch
+
 INDEX_DEFINITION = {
     "settings": {
         "index": {
@@ -78,7 +80,7 @@ INDEX_DEFINITION = {
 }
 
 
-def create_index(client, index_name: str, *, delete_if_exists: bool = False) -> None:
+def create_index(client: Elasticsearch, index_name: str, *, delete_if_exists: bool = False) -> None:
     """Creates an Elasticsearch index with Oud settings and mappings."""
     if client.indices.exists(index=index_name):
         if not delete_if_exists:
@@ -88,8 +90,6 @@ def create_index(client, index_name: str, *, delete_if_exists: bool = False) -> 
 
 
 if __name__ == '__main__':
-    from elasticsearch import Elasticsearch
-
     from config import settings
 
     client = Elasticsearch(settings.ES_HOST, api_key=settings.ES_API_KEY)

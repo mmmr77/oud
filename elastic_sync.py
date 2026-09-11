@@ -55,6 +55,7 @@ def fetch_verse_count(conn: psycopg2.extensions.connection) -> int:
     with conn.cursor() as cursor:
         cursor.execute("SELECT COUNT(*) FROM verse")
         row = cursor.fetchone()
+        assert row is not None  # COUNT(*) always returns exactly one row
         return int(row[0])
 
 
@@ -227,7 +228,7 @@ def _sync_blocking() -> int:
         es_client.close()
 
 
-async def sync(_=None) -> int:
+async def sync(_: object = None) -> int:
     """Async entrypoint for PTB job_queue; runs blocking sync in a worker thread."""
     return await asyncio.to_thread(_sync_blocking)
 

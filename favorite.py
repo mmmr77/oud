@@ -1,4 +1,3 @@
-
 from persian_tools.digits import convert_to_fa
 from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
@@ -26,7 +25,8 @@ class Favorite:
         Toggling the favorite must flip just that one button; the recitation/song and share buttons in the keyboard have
         to be preserved.
         """
-        rows = [[new_button if (button.callback_data or '').startswith(('favadd:', 'favremove:')) else button
+        rows = [[new_button if isinstance(button.callback_data, str)
+                 and button.callback_data.startswith(('favadd:', 'favremove:')) else button
                  for button in row]
                 for row in markup.inline_keyboard]
         return InlineKeyboardMarkup(rows)
@@ -46,15 +46,17 @@ class Favorite:
     async def get_offset(query: CallbackQuery | None) -> int:
         if query:
             await query.answer()
+            assert query.data is not None
             return int(query.data.split(':')[1])
         return 0
 
     @staticmethod
-    async def add_to_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE):
+    async def add_to_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """Adds the poem to the user's favorite poems."""
         query = update.callback_query
+        assert query is not None and query.data is not None
         poem_id = int(query.data.split(':')[1])
-        user = update.callback_query.from_user
+        user = query.from_user
         user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
@@ -66,16 +68,18 @@ class Favorite:
             DataBase().add_to_favorites(poem_id, user_id)
             await query.answer(const.FAVORITE_ADDED)
 
+        assert update.effective_message is not None and update.effective_message.reply_markup is not None
         keyboard = Favorite.replace_favorite_button(update.effective_message.reply_markup,
                                                     Favorite.get_remove_favorites_button(poem_id))
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
-    async def remove_from_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE):
+    async def remove_from_favorites(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """Removes the poem from the user's favorite poems."""
         query = update.callback_query
+        assert query is not None and query.data is not None
         poem_id = int(query.data.split(':')[1])
-        user = update.callback_query.from_user
+        user = query.from_user
         user_id = user.id
 
         if DataBase().check_is_favorite(poem_id, user_id):
@@ -84,12 +88,13 @@ class Favorite:
         else:
             await query.answer(const.FAVORITE_NOT_IN_FAVORITES)
 
+        assert update.effective_message is not None and update.effective_message.reply_markup is not None
         keyboard = Favorite.replace_favorite_button(update.effective_message.reply_markup,
                                                     Favorite.get_add_to_favorites_button(poem_id))
         await update.effective_message.edit_reply_markup(keyboard)
 
     @staticmethod
-    async def list_of_favorite_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def list_of_favorite_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Displays the list of favorite poems of the user.
 
         This method can be called in two ways:
@@ -98,6 +103,8 @@ class Favorite:
         """
         offset = await Favorite.get_offset(update.callback_query)
         user = update.effective_user
+        assert user is not None
+        assert update.effective_chat is not None
         user_id = user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
         if not favorites:
@@ -128,5 +135,6 @@ class Favorite:
             if update.message:
                 await context.bot.send_message(update.effective_chat.id, message_text, reply_markup=keyboard)
             else:
+                assert update.effective_message is not None
                 await update.effective_message.edit_text(message_text)
                 await update.effective_message.edit_reply_markup(keyboard)

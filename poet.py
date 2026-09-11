@@ -8,13 +8,16 @@ from poem import Poem
 
 class Poet:
     @staticmethod
-    async def poets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, search_text: str = None):
+    async def poets_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, search_text: str | None = None) -> None:
         """Displays the poets menu.
 
         This method can be called in two ways:
         1) The user sends the /poets command.
         2) The user searches for poets by name.
         """
+        assert context.user_data is not None
+        assert update.effective_chat is not None
+        assert update.message is not None and update.message.from_user is not None
         poets = DataBase().get_poets(search_text)
 
         if not poets:
@@ -44,7 +47,7 @@ class Poet:
         await context.bot.send_message(update.message.from_user.id, const.POETS, reply_markup=menu)
 
     @staticmethod
-    async def poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Displays information about a poet.
 
         This method can be called in three ways:
@@ -52,17 +55,22 @@ class Poet:
         2) In the poet details menu, the user taps on a category that has sub-categories.
         3) The user searches for poets by name and the search query results in a single poet.
         """
+        assert context.user_data is not None
         if update.callback_query:
             query = update.callback_query
             await query.answer()
+            assert query.data is not None
             poet_id = int(query.data.split(':')[1])
             category_id = int(query.data.split(':')[2])
         else:  # Uses user data. This is the third way this method is called.
             poet_id = context.user_data['poet_id']
             category_id = context.user_data['category_id']
             context.user_data.clear()
+        assert update.effective_message is not None and update.effective_message.text is not None
+        assert update.effective_user is not None
         parent_category_id = DataBase().get_parent_category_id(category_id)
         poet = DataBase().get_poet(poet_id)
+        assert poet is not None
 
         categories = DataBase().get_poet_categories(poet_id, category_id)
         buttons = list()

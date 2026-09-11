@@ -13,7 +13,8 @@ from util import Util
 
 class Poem:
     @staticmethod
-    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE, origin_message_id: int):
+    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE,
+                             origin_message_id: int) -> None:
         """Displays the poem to the user.
 
         This method can be called in six ways:
@@ -30,6 +31,7 @@ class Poem:
             return
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
+        assert poem_info is not None  # the poem exists (poem_text was non-empty above)
         bot_username = context.bot.username
         messages = Util.break_long_poems(new_poem_text, poem_info, bot_username)
 
@@ -69,6 +71,8 @@ class Poem:
     @staticmethod
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
+        assert query is not None and query.data is not None
+        assert update.effective_message is not None
         await query.answer()
         poem_id = int(query.data.split(':')[1])
         origin_message_id = update.effective_message.id
@@ -89,10 +93,12 @@ class Poem:
             context.user_data.clear()
         else:
             query = update.callback_query
+            assert query is not None and query.data is not None
             await query.answer()
             category_id = int(query.data.split(':')[1])
             offset = int(query.data.split(':')[2])
 
+        assert update.effective_message is not None and update.effective_user is not None
         poems: list = DataBase().get_category_poems(category_id, offset)
         buttons = list()
         for i in range(0, len(poems), 2):

@@ -24,24 +24,27 @@ from util import Util
 
 class Search:
     @staticmethod
-    async def get_offset_and_search_query(query: CallbackQuery | None, message):
+    async def get_offset_and_search_query(query: CallbackQuery | None,
+                                          message: dict) -> tuple[int, str | None]:
         if query:
             await query.answer()
+            assert query.data is not None
             parts = query.data.split(':')
             offset = int(parts[2])
             search_identifier = parts[1]
             search_text = RedisDB().get(search_identifier)
             if search_text:
-                search_text = search_text.decode('utf-8')
-            return offset, search_text
+                return offset, search_text
+            return offset, None
         return 0, message["search_query"]
 
     @staticmethod
-    async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return await Search.search(update, context, ElasticSearchDB().perform_search, 'srch')
 
     @staticmethod
-    async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int | None:
+        assert context.user_data is not None and update.effective_chat is not None
         search_text = context.user_data["search_query"]
         context.user_data.clear()
         if len(search_text) < 3 or len(search_text) > 100:
@@ -52,7 +55,9 @@ class Search:
         return ConversationHandler.END
 
     @staticmethod
-    async def search_destination(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def search_destination(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        assert context.user_data is not None and update.message is not None
+        assert update.effective_chat is not None
         context.user_data["search_query"] = update.message.text
         keyboard = ReplyKeyboardMarkup([[const.SEARCH_VERSE], [const.SEARCH_POET], [const.SEARCH_POEM_TITLE],
                                         [const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
@@ -61,13 +66,14 @@ class Search:
         return 0
 
     @staticmethod
-    async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def search_title(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return await Search.search(update, context, DataBase().search_title, 'st',
                                    DataBase().search_title_count)
 
     @staticmethod
     async def search(update: Update, context: ContextTypes.DEFAULT_TYPE, search_func: Callable, callback_key: str,
-                     count_func: Callable = None):
+                     count_func: Callable | None = None) -> int:
+        assert context.user_data is not None and update.effective_chat is not None
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
         context.user_data.clear()
         if not search_text:
@@ -125,13 +131,15 @@ class Search:
             await context.bot.send_message(update.effective_chat.id, text=message_text, reply_markup=menu,
                                            parse_mode=ParseMode.HTML)
         else:
+            assert update.effective_message is not None
             await update.effective_message.edit_text(message_text, parse_mode=ParseMode.HTML)
             await update.effective_message.edit_reply_markup(menu)
 
         return ConversationHandler.END
 
     @staticmethod
-    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        assert update.effective_chat is not None
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CANCEL,
                                        reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END

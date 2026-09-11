@@ -1,25 +1,19 @@
+from datetime import datetime
+from typing import Any
 from urllib.parse import quote_plus
 
-from sqlalchemy import create_engine, delete, func, select, update
+from sqlalchemy import Executable, create_engine, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from config import settings
 from db_schema import Cat, Fav, Omen, Opinion, Poem, PoemSnd, Poet, Song, User, Verse
+from singleton import Singleton
 
 
 def _build_engine_url() -> str:
     user = quote_plus(str(settings.DB_USER))
     password = quote_plus(str(settings.DB_PASSWORD))
     return f"postgresql+psycopg2://{user}:{password}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
 
 
 class DataBase(metaclass=Singleton):
@@ -35,36 +29,36 @@ class DataBase(metaclass=Singleton):
     def close(self) -> None:
         self._engine.dispose()
 
-    def _fetch_all(self, statement) -> list[dict]:
+    def _fetch_all(self, statement: Executable) -> list[dict]:
         with self._engine.connect() as connection:
             return [dict(row) for row in connection.execute(statement).mappings()]
 
-    def _fetch_one(self, statement) -> dict | None:
+    def _fetch_one(self, statement: Executable) -> dict | None:
         with self._engine.connect() as connection:
             row = connection.execute(statement).mappings().first()
             return dict(row) if row is not None else None
 
-    def _fetch_scalar(self, statement):
+    def _fetch_scalar(self, statement: Executable) -> Any:
         with self._engine.connect() as connection:
             return connection.execute(statement).scalar_one()
 
-    def _execute_write(self, statement) -> None:
+    def _execute_write(self, statement: Executable) -> None:
         with self._engine.begin() as connection:
             connection.execute(statement)
 
-    def get_poets(self, search_text: str = None) -> list[dict]:
+    def get_poets(self, search_text: str | None = None) -> list[dict]:
         statement = select(Poet.id, Poet.name, Poet.cat_id).order_by(Poet.name)
         if search_text:
             statement = statement.where(Poet.name.ilike(f'%{search_text}%'))
         return self._fetch_all(statement)
 
-    def get_poet(self, poet_id: int) -> dict:
+    def get_poet(self, poet_id: int) -> dict | None:
         return self._fetch_one(select(Poet.name, Poet.cat_id, Poet.description).where(Poet.id == poet_id))
 
     def get_poem_text(self, poem_id: int) -> list[dict]:
         return self._fetch_all(select(Verse.text).where(Verse.poem_id == poem_id).order_by(Verse.vorder))
 
-    def get_poem_info(self, poem_id: int) -> dict:
+    def get_poem_info(self, poem_id: int) -> dict | None:
         return self._fetch_one(select(Poem.title, Poem.url, Poet.name)
                                .join(Cat, Poem.cat_id == Cat.id)
                                .join(Poet, Cat.poet_id == Poet.id)
@@ -87,16 +81,15 @@ class DataBase(metaclass=Singleton):
                                .where(Poem.title.ilike(f'%{text}%'))
                                .limit(limit).offset(offset))
 
-    def search_title_count(self, text: str):
+    def search_title_count(self, text: str) -> int:
         return self._fetch_scalar(select(func.count()).select_from(Poem).where(Poem.title.ilike(f'%{text}%')))
 
-    def insert_opinion(self, *args) -> None:
-        user_id, message, creation_datetime = args
+    def insert_opinion(self, user_id: int, message: str | None, creation_datetime: datetime) -> None:
         self._execute_write(insert(Opinion).values(user_id=user_id, message=message,
                                                    creation_datetime=creation_datetime))
 
     def upsert_user_activity(self, user_id: int, first_name: str | None, last_name: str | None, username: str | None,
-                             seen_at) -> None:
+                             seen_at: datetime) -> None:
         statement = insert(User).values(id=user_id, first_name=first_name, last_name=last_name, username=username,
                                         creation_datetime=seen_at, last_seen_at=seen_at)
         statement = statement.on_conflict_do_update(
@@ -110,7 +103,7 @@ class DataBase(metaclass=Singleton):
             })
         self._execute_write(statement)
 
-    def count_active_users_since(self, since_dt) -> int:
+    def count_active_users_since(self, since_dt: datetime) -> int:
         return self._fetch_scalar(select(func.count()).select_from(User).where(User.last_seen_at >= since_dt))
 
     def count_users(self) -> int:
@@ -135,7 +128,7 @@ class DataBase(metaclass=Singleton):
             select(func.count()).select_from(PoemSnd)
             .where(PoemSnd.poem_id == poem_id, PoemSnd.telegram_file_id.is_not(None)))
 
-    def get_recitation(self, recitation_id: int) -> dict:
+    def get_recitation(self, recitation_id: int) -> dict | None:
         return self._fetch_one(select(PoemSnd.telegram_file_id, PoemSnd.title, PoemSnd.artist)
                                .where(PoemSnd.id == recitation_id))
 
@@ -211,6 +204,6 @@ class DataBase(metaclass=Singleton):
             select(func.count(func.distinct(Song.source_page)))
             .where(Song.poem_id == poem_id, Song.telegram_file_id.is_not(None)))
 
-    def get_song(self, song_id: int) -> dict:
+    def get_song(self, song_id: int) -> dict | None:
         return self._fetch_one(select(Song.telegram_file_id, Song.title, Song.artist, Song.duration)
                                .where(Song.id == song_id))
