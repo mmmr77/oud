@@ -1,10 +1,43 @@
-from telegram import InlineQueryResultArticle, InputTextMessageContent
+import logging
+
+from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.constants import ParseMode
+from telegram.ext import ContextTypes
 
 from config import settings
+from elastic_db import ElasticSearchDB
+
+logger = logging.getLogger(__name__)
+
+MIN_QUERY_LENGTH = 3
+CACHE_TIME_SECONDS = 30
 
 
 class InlineSearch:
+    @staticmethod
+    async def handle_inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        assert update.inline_query is not None
+        search_text = update.inline_query.query.strip()
+
+        if len(search_text) < MIN_QUERY_LENGTH:
+            await update.inline_query.answer([], cache_time=CACHE_TIME_SECONDS, is_personal=False)
+            return
+
+        offset = int(update.inline_query.offset) if update.inline_query.offset else 0
+
+        try:
+            search_results, total_search_count = ElasticSearchDB().perform_search(search_text, offset)
+        except RuntimeError:
+            logger.exception("Inline search failed for query %r", search_text)
+            await update.inline_query.answer([], cache_time=CACHE_TIME_SECONDS, is_personal=False)
+            return
+
+        results = [InlineSearch.build_result(result) for result in search_results]
+        next_offset = InlineSearch.compute_next_offset(offset, len(search_results), total_search_count)
+
+        await update.inline_query.answer(results, next_offset=next_offset,
+                                         cache_time=CACHE_TIME_SECONDS, is_personal=False)
+
     @staticmethod
     def build_result(result: dict) -> InlineQueryResultArticle:
         title = f"{result['title']} - {result['name']}"
