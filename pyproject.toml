@@ -1,7 +1,7 @@
 [tool.pytest.ini_options]
 # Put the repo root on the path so tests can import the recitation_uploader package and top-level modules.
 pythonpath = ["."]
-testpaths = ["recitation_uploader/tests"]
+testpaths = ["recitation_uploader/tests", "tests"]
 
 [tool.pyrefly]
 python-version = "3.11"
@@ -12,6 +12,7 @@ project-excludes = [
     "**/__pycache__/**",
     "alembic/versions/**",      # generated migrations
     "recitation_uploader/tests/**",  # tests exempt from the type gate
+    "tests/**",                      # tests exempt from the type gate
 ]
 # persian_tools ships no usable type information; treat it as Any instead of emitting false positives.
 replace-imports-with-any = ["persian_tools", "persian_tools.*"]
@@ -34,3 +35,4 @@ select = ["E", "F", "W", "I", "UP", "ANN001", "ANN002", "ANN003", "ANN201", "ANN
 "__init__.py" = ["F401"]
 # Test functions don't need annotations.
 "recitation_uploader/tests/**" = ["ANN"]
+"tests/**" = ["ANN"]
