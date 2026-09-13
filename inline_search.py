@@ -1,13 +1,21 @@
 import asyncio
 import logging
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    Update,
+)
 from telegram.constants import ParseMode
 from telegram.error import TelegramError
 from telegram.ext import ContextTypes
 
 from config import settings
+from db import DataBase
 from elastic_db import ElasticSearchDB
+from util import Util
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +43,26 @@ class InlineSearch:
             await InlineSearch._answer(update, [])
             return
 
-        results = [InlineSearch.build_result(result, offset + i) for i, result in enumerate(search_results)]
+        bot_username = context.bot.username
+        built_results = await asyncio.gather(*[
+            InlineSearch._build_result_for_hit(hit, offset + i, bot_username)
+            for i, hit in enumerate(search_results)
+        ])
+        results = [result for result in built_results if result is not None]
         next_offset = InlineSearch.compute_next_offset(offset, len(search_results), total_search_count)
 
         await InlineSearch._answer(update, results, next_offset=next_offset)
+
+    @staticmethod
+    async def _build_result_for_hit(result: dict, position: int,
+                                    bot_username: str) -> InlineQueryResultArticle | None:
+        poem_text, poem_info = await asyncio.gather(
+            asyncio.to_thread(DataBase().get_poem_text, result['id']),
+            asyncio.to_thread(DataBase().get_poem_info, result['id']),
+        )
+        if not poem_text or poem_info is None:
+            return None
+        return InlineSearch.build_result(result, position, poem_text, poem_info, bot_username)
 
     @staticmethod
     async def _answer(update: Update, results: list, next_offset: str = "") -> None:
@@ -50,14 +74,18 @@ class InlineSearch:
             logger.warning("Failed to answer inline query.")
 
     @staticmethod
-    def build_result(result: dict, position: int) -> InlineQueryResultArticle:
+    def build_result(result: dict, position: int, poem_text: list[dict], poem_info: dict,
+                     bot_username: str) -> InlineQueryResultArticle:
         title = f"{result['title']} - {result['name']}"
         description = result['text'].replace('<b>', '').replace('</b>', '')
+        messages = Util.break_long_poems(Util.break_long_verses(poem_text), poem_info, bot_username)
+        button = InlineKeyboardButton('مشاهده اثر کامل', url=f"https://t.me/{bot_username}?start={result['id']}")
         return InlineQueryResultArticle(
             id=f"{result['id']}:{position}",
             title=title,
             description=description,
-            input_message_content=InputTextMessageContent(result['text'], parse_mode=ParseMode.HTML),
+            input_message_content=InputTextMessageContent(messages[0], parse_mode=ParseMode.HTML),
+            reply_markup=InlineKeyboardMarkup([[button]]),
         )
 
     @staticmethod
