@@ -43,9 +43,8 @@ class InlineSearch:
             await InlineSearch._answer(update, [])
             return
 
-        bot_username = context.bot.username
         built_results = await asyncio.gather(*[
-            InlineSearch._build_result_for_hit(hit, offset + i, bot_username)
+            InlineSearch._build_result_for_hit(hit, offset + i, context.bot.username)
             for i, hit in enumerate(search_results)
         ])
         results = [result for result in built_results if result is not None]
@@ -90,8 +89,6 @@ class InlineSearch:
 
     @staticmethod
     def compute_next_offset(offset: int, results_in_page: int, total_search_count: int) -> str:
-        more_results_exist = offset + results_in_page < total_search_count
-        under_depth_cap = offset < settings.SEARCH_RESULT_PER_PAGE * 2
-        if more_results_exist and under_depth_cap:
+        if offset + results_in_page < total_search_count and offset < settings.SEARCH_RESULT_PER_PAGE * 2:
             return str(offset + results_in_page)
         return ""
