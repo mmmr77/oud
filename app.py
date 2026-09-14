@@ -9,6 +9,7 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     ConversationHandler,
+    InlineQueryHandler,
     MessageHandler,
     TypeHandler,
     filters,
@@ -21,6 +22,7 @@ from command import Command
 from config import settings
 from elastic_sync import sync as sync_elasticsearch
 from favorite import Favorite
+from inline_search import InlineSearch
 from omen import Omen
 from opinion import Opinion
 from poem import Poem
@@ -95,6 +97,8 @@ class Application:
 
         search_query_handler = CallbackQueryHandler(Search.search_poems, r'^srch:.+:\d+$')
 
+        inline_search_handler = InlineQueryHandler(InlineSearch.handle_inline_query)
+
         recitation_handler = CallbackQueryHandler(Recitation.get_recitation_by_id, r'^recitation:\d+$')
 
         favorite_add_handler = CallbackQueryHandler(Favorite.add_to_favorites, r'^favadd:\d+$')
@@ -151,7 +155,7 @@ class Application:
              favorite_add_handler, favorite_remove_handler, favorite_poems_handler, favorite_poems_query_handler,
              hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler, song_saver_audio_handler,
              song_handler, recitations_handler, songs_handler, reply_opinion_handler, search_title_query_handler,
-             commands_handler, search_message_handler])
+             commands_handler, search_message_handler, inline_search_handler])
 
     def add_jobs(self) -> None:
         assert self.application.job_queue is not None
