@@ -78,7 +78,7 @@ class InlineSearch:
         title = f"{result['title']} - {result['name']}"
         description = result['text'].replace('<b>', '').replace('</b>', '')
         messages = Util.break_long_poems(Util.break_long_verses(poem_text), poem_info, bot_username)
-        button = InlineKeyboardButton('مشاهده اثر کامل', url=f"https://t.me/{bot_username}?start={result['id']}")
+        button = InlineKeyboardButton('مشاهده در ربات', url=f"https://t.me/{bot_username}?start={result['id']}")
         return InlineQueryResultArticle(
             id=f"{result['id']}:{position}",
             title=title,
