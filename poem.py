@@ -1,5 +1,5 @@
 from telegram import CopyTextButton, InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.constants import ParseMode
+from telegram.constants import ChatType, ParseMode
 from telegram.ext import ContextTypes
 
 import const
@@ -13,8 +13,8 @@ from util import Util
 
 class Poem:
     @staticmethod
-    async def get_poem_by_id(poem_id: int, user_id: int, context: ContextTypes.DEFAULT_TYPE,
-                             origin_message_id: int) -> None:
+    async def get_poem_by_id(poem_id: int, user_id: int, chat_id: int, is_private_chat: bool,
+                             context: ContextTypes.DEFAULT_TYPE, origin_message_id: int) -> None:
         """Displays the poem to the user.
 
         This method can be called in six ways:
@@ -27,7 +27,7 @@ class Poem:
         """
         poem_text = DataBase().get_poem_text(poem_id)
         if not poem_text:
-            await context.bot.send_message(user_id, const.POEM_NOT_FOUND)
+            await context.bot.send_message(chat_id, const.POEM_NOT_FOUND)
             return
         new_poem_text = Util.break_long_verses(poem_text)
         poem_info = DataBase().get_poem_info(poem_id)
@@ -35,14 +35,7 @@ class Poem:
         bot_username = context.bot.username
         messages = Util.break_long_poems(new_poem_text, poem_info, bot_username)
 
-        # Create the keyboard buttons.
-        is_favorite = DataBase().check_is_favorite(poem_id, user_id)
-        if is_favorite:
-            button_favorite = Favorite.get_remove_favorites_button(poem_id)
-        else:
-            button_favorite = Favorite.get_add_to_favorites_button(poem_id)
-
-        # If recitations or songs exist, surface them as buttons (revealed on tap) above the favorite/share buttons.
+        # If recitations or songs exist, surface them as buttons (revealed on tap).
         audio_row = []
         recitation_count = DataBase().get_recitation_count(poem_id)
         if recitation_count > 0:
@@ -54,7 +47,12 @@ class Poem:
         rows = []
         if audio_row:
             rows.append(audio_row)
-        rows.append([button_favorite])
+        # Favorites are personal, so the button that shows/changes favorite status is hidden outside private chats.
+        if is_private_chat:
+            is_favorite = DataBase().check_is_favorite(poem_id, user_id)
+            button_favorite = (Favorite.get_remove_favorites_button(poem_id) if is_favorite
+                              else Favorite.get_add_to_favorites_button(poem_id))
+            rows.append([button_favorite])
         rows.append([InlineKeyboardButton('پیوند اشتراک اثر',
                                           copy_text=CopyTextButton(f"https://t.me/{bot_username}?start={poem_id}"))])
         keyboard = InlineKeyboardMarkup(rows)
@@ -62,23 +60,25 @@ class Poem:
         # If a poem is too long and needs to be sent in more than one message, we show the keyboard only in the last
         # message of the poem.
         for message in messages[:-1]:
-            message = await context.bot.send_message(user_id, message, parse_mode=ParseMode.HTML,
+            message = await context.bot.send_message(chat_id, message, parse_mode=ParseMode.HTML,
                                                      reply_to_message_id=origin_message_id)
             origin_message_id = message.id
-        await context.bot.send_message(user_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard,
+        await context.bot.send_message(chat_id, messages[-1], parse_mode=ParseMode.HTML, reply_markup=keyboard,
                                        reply_to_message_id=origin_message_id)
 
     @staticmethod
     async def show_poem_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
         assert query is not None and query.data is not None
-        assert update.effective_message is not None
+        assert update.effective_message is not None and update.effective_chat is not None
         await query.answer()
         poem_id = int(query.data.split(':')[1])
         origin_message_id = update.effective_message.id
         user_id = query.from_user.id
+        is_private_chat = update.effective_chat.type == ChatType.PRIVATE
 
-        await Poem.get_poem_by_id(poem_id, user_id, context, origin_message_id)
+        await Poem.get_poem_by_id(poem_id, user_id, update.effective_chat.id, is_private_chat, context,
+                                  origin_message_id)
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -98,7 +98,7 @@ class Poem:
             category_id = int(query.data.split(':')[1])
             offset = int(query.data.split(':')[2])
 
-        assert update.effective_message is not None and update.effective_user is not None
+        assert update.effective_message is not None and update.effective_chat is not None
         # Fetch one extra poem to know whether there is a next page without a separate count query.
         poems: list = DataBase().get_category_poems(category_id, offset, settings.POEM_PER_PAGE + 1)
         has_next_page = len(poems) > settings.POEM_PER_PAGE
@@ -124,4 +124,4 @@ class Poem:
         if update.effective_message.text == const.POEMS.strip():
             await update.effective_message.edit_reply_markup(menu)
         else:
-            await context.bot.send_message(update.effective_user.id, const.POEMS, reply_markup=menu)
+            await context.bot.send_message(update.effective_chat.id, const.POEMS, reply_markup=menu)

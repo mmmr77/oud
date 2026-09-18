@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.constants import ParseMode
+from telegram.constants import ChatType, ParseMode
 from telegram.ext import ContextTypes, ConversationHandler
 from telegram.helpers import mention_html
 
@@ -17,6 +17,9 @@ class Opinion:
     async def opinion(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Displays the opinion introduction message to the user."""
         assert update.effective_chat is not None
+        if update.effective_chat.type != ChatType.PRIVATE:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.PRIVATE_CHAT_ONLY)
+            return ConversationHandler.END
         keyboard = ReplyKeyboardMarkup([[const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.OPINION, reply_markup=keyboard)
         return 0

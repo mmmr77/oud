@@ -44,7 +44,7 @@ class Poet:
             buttons.append(row)
         menu = InlineKeyboardMarkup(buttons)
 
-        await context.bot.send_message(update.message.from_user.id, const.POETS, reply_markup=menu)
+        await context.bot.send_message(update.effective_chat.id, const.POETS, reply_markup=menu)
 
     @staticmethod
     async def poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -67,7 +67,7 @@ class Poet:
             category_id = context.user_data['category_id']
             context.user_data.clear()
         assert update.effective_message is not None and update.effective_message.text is not None
-        assert update.effective_user is not None
+        assert update.effective_chat is not None
         parent_category_id = DataBase().get_parent_category_id(category_id)
         poet = DataBase().get_poet(poet_id)
         assert poet is not None
@@ -89,7 +89,7 @@ class Poet:
 
         if update.effective_message.text == const.POETS.strip() or update.effective_message.text == const.SEARCH_POET:
             text = const.POET.format(poet=poet['name'], description=poet['description'])
-            await context.bot.send_message(update.effective_user.id, text, reply_markup=menu)
+            await context.bot.send_message(update.effective_chat.id, text, reply_markup=menu)
         elif update.effective_message.text.startswith(const.POET.strip()[:8]) and categories:
             await update.effective_message.edit_reply_markup(menu)
 

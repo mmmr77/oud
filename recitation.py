@@ -55,12 +55,12 @@ class Recitation:
         """
         query = update.callback_query
         assert query is not None and query.data is not None
-        assert update.effective_message is not None
+        assert update.effective_message is not None and update.effective_chat is not None
         await query.answer()
         poem_id = int(query.data.split(':')[1])
         count, keyboard = Recitation.get_recitations(poem_id)
         if count > 0:
-            await context.bot.send_message(query.from_user.id,
+            await context.bot.send_message(update.effective_chat.id,
                                            convert_to_fa(const.RECITATION_COUNT.format(count=count)),
                                            reply_markup=keyboard,
                                            reply_to_message_id=update.effective_message.id)
@@ -70,9 +70,10 @@ class Recitation:
         """Sends the selected recitation to the user."""
         query = update.callback_query
         assert query is not None and query.data is not None
+        assert update.effective_chat is not None
         await query.answer()
         recitation_id = int(query.data.split(':')[1])
         recitation = DataBase().get_recitation(recitation_id)
         assert recitation is not None
-        await context.bot.send_audio(query.from_user.id, recitation["telegram_file_id"], performer=recitation["artist"],
-                                     title=recitation["title"])
+        await context.bot.send_audio(update.effective_chat.id, recitation["telegram_file_id"],
+                                     performer=recitation["artist"], title=recitation["title"])

@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.constants import ParseMode
+from telegram.constants import ChatType, ParseMode
 from telegram.ext import ContextTypes
 
 import const
@@ -16,8 +16,24 @@ class Command:
         """
         assert update.message is not None and update.message.text is not None
         assert update.effective_chat is not None
-        response = Command.get_general_commands_response(update.message.text[1:])
+        command_name = Command.parse_command_name(update.message.text, context.bot.username)
+        if command_name is None:
+            return
+        response = Command.get_general_commands_response(command_name)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)
+
+    @staticmethod
+    def parse_command_name(text: str, bot_username: str | None) -> str | None:
+        """Extracts the command name from a message, ignoring any arguments and the bot mention.
+
+        In groups, clients often append "@bot_username" to commands (unlike in private chats), and other bots'
+        commands may be visible to us too. Returns None when the command explicitly targets a different bot.
+        """
+        command_token = text.split()[0][1:]
+        command_name, _, mentioned_bot = command_token.partition('@')
+        if mentioned_bot and mentioned_bot.lower() != (bot_username or '').lower():
+            return None
+        return command_name
 
     @staticmethod
     def get_general_commands_response(command: str) -> str:
@@ -43,7 +59,9 @@ class Command:
 
         if context.args and len(context.args) == 1 and context.args[0].isnumeric():
             poem_id = int(context.args[0])
-            await Poem.get_poem_by_id(poem_id, user_id, context, update.effective_message.id)
+            is_private_chat = update.effective_chat.type == ChatType.PRIVATE
+            await Poem.get_poem_by_id(poem_id, user_id, update.effective_chat.id, is_private_chat, context,
+                                      update.effective_message.id)
 
     @staticmethod
     @admin

@@ -1,5 +1,6 @@
 from persian_tools.digits import convert_to_fa
 from telegram import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ChatType
 from telegram.ext import ContextTypes
 
 import const
@@ -105,6 +106,9 @@ class Favorite:
         user = update.effective_user
         assert user is not None
         assert update.effective_chat is not None
+        if update.effective_chat.type != ChatType.PRIVATE:
+            await context.bot.send_message(update.effective_chat.id, const.PRIVATE_CHAT_ONLY)
+            return
         user_id = user.id
         favorites = DataBase().get_favorite_poems(user_id, offset)
         if not favorites:
