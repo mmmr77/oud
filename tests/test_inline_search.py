@@ -31,7 +31,7 @@ def test_build_result_sends_full_poem_as_message_content_with_view_button():
     assert article.description == "الا یا ایها الساقی ادر کاسا"
     assert article.input_message_content.message_text == expected_messages[0]
     assert article.input_message_content.parse_mode == ParseMode.HTML
-    assert article.reply_markup.inline_keyboard[0][0].text == "مشاهده اثر کامل"
+    assert article.reply_markup.inline_keyboard[0][0].text == "مشاهده در ربات"
     assert article.reply_markup.inline_keyboard[0][0].url == "https://t.me/oud_bot?start=42"
 
 
