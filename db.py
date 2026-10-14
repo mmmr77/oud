@@ -56,7 +56,9 @@ class DataBase(metaclass=Singleton):
         return self._fetch_one(select(Poet.name, Poet.cat_id, Poet.description).where(Poet.id == poet_id))
 
     def get_poem_text(self, poem_id: int) -> list[dict]:
-        return self._fetch_all(select(Verse.text).where(Verse.poem_id == poem_id).order_by(Verse.vorder))
+        return self._fetch_all(select(Verse.text, Verse.position)
+                               .where(Verse.poem_id == poem_id)
+                               .order_by(Verse.vorder))
 
     def get_poem_info(self, poem_id: int) -> dict | None:
         return self._fetch_one(select(Poem.title, Poem.url, Poet.name)

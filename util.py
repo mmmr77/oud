@@ -24,15 +24,32 @@ class Util:
         return message
 
     @staticmethod
+    def verse_separator(position: int | None, next_position: int | None) -> str:
+        """Returns the text that goes after a verse, given its position and the next verse's position.
+
+        Positions follow Ganjoor: 0/1 are the right/left hemistichs of a couplet, 2/3 a centered couplet (the band of
+        a tarji'band/tarkibband), 4 a free-verse line (stanzas are already split by empty lines), 5 a comment and
+        -1 a prose paragraph. A blank line is added after each couplet and where prose meets verse.
+        """
+        if next_position is None:
+            return '\n'
+        if position in (1, 3) or (position == -1) != (next_position == -1):
+            return '\n\n'
+        return '\n'
+
+    @staticmethod
     def break_long_verses(poem_text: list[dict]) -> list:
+        """Returns the poem's verses, each ending with its separator, splitting verses too long for a message."""
         new_poem_text: list = list()
-        for verse in poem_text:
+        for i, verse in enumerate(poem_text):
+            next_position = poem_text[i + 1].get('position') if i + 1 < len(poem_text) else None
+            separator = Util.verse_separator(verse.get('position'), next_position)
             if len(verse['text']) > 3800:
                 separation_index = verse['text'].rfind('.', 0, 3800)
-                new_poem_text.append(verse['text'][:separation_index + 1])
-                new_poem_text.append(verse['text'][separation_index + 1:])
+                new_poem_text.append(verse['text'][:separation_index + 1] + '\n')
+                new_poem_text.append(verse['text'][separation_index + 1:] + separator)
             else:
-                new_poem_text.append(verse['text'])
+                new_poem_text.append(verse['text'] + separator)
         return new_poem_text
 
     @staticmethod
@@ -41,6 +58,7 @@ class Util:
 
     @staticmethod
     def break_long_poems(poem_text: list[str], poem_info: dict, bot_username: str) -> list:
+        """Packs separator-terminated verses (from break_long_verses) into as few messages as possible."""
         messages = list()
         poem_in_a_single_message = ''
         for verse in poem_text:
@@ -49,9 +67,9 @@ class Util:
             if len(message) > 4096:
                 messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'],
                                                  poem_info['name'], bot_username))
-                poem_in_a_single_message = verse + '\n'
+                poem_in_a_single_message = verse
             else:
-                poem_in_a_single_message += verse + '\n'
+                poem_in_a_single_message += verse
         messages.append(Util.format_poem(poem_in_a_single_message, poem_info['url'], poem_info['title'],
                                          poem_info['name'], bot_username))
         return messages
