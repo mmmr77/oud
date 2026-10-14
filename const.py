@@ -17,6 +17,14 @@ OPINION = """
 
 SEARCH = "عبارت مورد نظر خود را برای جستجو در متن آثار، نام شاعران یا عنوان آثار وارد کنید."
 
+SEARCH_IN_GROUP = """
+برای جستجو در گروه، نام ربات را همراه با عبارت مورد نظر بنویسید؛ مثلا:
+@{bot_username} عبارت جستجو
+یا از دکمه‌ی زیر استفاده کنید.
+"""
+
+SEARCH_IN_GROUP_BUTTON = "جستجو در متن آثار"
+
 SEARCH_DESTINATION = "عبارت شما در کجا جستجو شود؟"
 
 SEARCH_POET = "نام شاعران"
@@ -163,4 +171,4 @@ DONATE = """
 از حمایت‌تان متشکرم! ❤️
 """
 
-__all__ = ("ABOUT", "OPINION", "HELP", "SEARCH", "FAQ", "DONATE")
+__all__ = ("ABOUT", "OPINION", "HELP", "FAQ", "DONATE")

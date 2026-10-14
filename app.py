@@ -132,10 +132,12 @@ class Application:
 
         search_title_query_handler = CallbackQueryHandler(Search.search_title, r'^st:.+:\d+$')
 
+        search_command_handler = CommandHandler('search', Command.search)
+
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
 
         search_message_handler = ConversationHandler(
-            entry_points=[MessageHandler(filters.TEXT, Search.search_destination)],
+            entry_points=[MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, Search.search_destination)],
             states={
                 0: [
                     MessageHandler(filters.Regex(rf"^{const.SEARCH_POET}$"), Search.search_poet),
@@ -155,7 +157,7 @@ class Application:
              favorite_add_handler, favorite_remove_handler, favorite_poems_handler, favorite_poems_query_handler,
              hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler, song_saver_audio_handler,
              song_handler, recitations_handler, songs_handler, reply_opinion_handler, search_title_query_handler,
-             commands_handler, search_message_handler, inline_search_handler])
+             search_command_handler, commands_handler, search_message_handler, inline_search_handler])
 
     def add_jobs(self) -> None:
         assert self.application.job_queue is not None

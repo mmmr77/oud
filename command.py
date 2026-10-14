@@ -1,4 +1,4 @@
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ChatType, ParseMode
 from telegram.ext import ContextTypes
 
@@ -43,6 +43,21 @@ class Command:
             return getattr(const, command_upper)
         else:
             return const.INVALID_COMMAND
+
+    @staticmethod
+    async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles the search command.
+
+        Free-text search only works in private chats, so in groups we point users to inline search instead.
+        """
+        assert update.effective_chat is not None
+        if update.effective_chat.type == ChatType.PRIVATE:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH)
+            return
+        button = InlineKeyboardButton(const.SEARCH_IN_GROUP_BUTTON, switch_inline_query_current_chat='')
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+                                       text=const.SEARCH_IN_GROUP.format(bot_username=context.bot.username),
+                                       reply_markup=InlineKeyboardMarkup([[button]]))
 
     @staticmethod
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
