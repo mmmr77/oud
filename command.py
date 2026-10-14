@@ -20,6 +20,8 @@ class Command:
         if command_name is None:
             return
         response = Command.get_general_commands_response(command_name)
+        if command_name.lower() == 'help':
+            response = response.format(bot_username=context.bot.username)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)
 
     @staticmethod

@@ -28,6 +28,17 @@ def test_parse_command_name_returns_none_for_a_different_bots_command():
     assert Command.parse_command_name("/roll@dice_bot", "oud_bot") is None
 
 
+def test_help_includes_the_bot_username_for_inline_search():
+    update = MagicMock()
+    update.message.text = "/help@oud_bot"
+    context = MagicMock()
+    context.bot.username = "oud_bot"
+    context.bot.send_message = AsyncMock()
+    asyncio.run(Command.general_command(update, context))
+    text = context.bot.send_message.call_args.kwargs["text"]
+    assert "@oud_bot " in text
+    assert "{bot_username}" not in text
+
 
 def run_search_command(chat_type: str) -> dict:
     """Runs the search command in a chat of the given type and returns the arguments of the sent message."""
