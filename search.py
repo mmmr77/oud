@@ -25,7 +25,7 @@ from util import Util
 class Search:
     @staticmethod
     async def get_offset_and_search_query(query: CallbackQuery | None,
-                                          message: dict) -> tuple[int, str | None]:
+                                          user_data: dict) -> tuple[int, str | None]:
         if query:
             await query.answer()
             assert query.data is not None
@@ -36,7 +36,7 @@ class Search:
             if search_text:
                 return offset, search_text
             return offset, None
-        return 0, message["search_query"]
+        return 0, user_data.pop("search_query", None)
 
     @staticmethod
     async def search_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -45,8 +45,11 @@ class Search:
     @staticmethod
     async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int | None:
         assert context.user_data is not None and update.effective_chat is not None
-        search_text = context.user_data["search_query"]
-        context.user_data.clear()
+        search_text = context.user_data.pop("search_query", None)
+        if not search_text:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_RETRY,
+                                           reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
         if len(search_text) < 3 or len(search_text) > 100:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CHARACTERS_NOT_VALID,
                                            reply_markup=ReplyKeyboardRemove())
@@ -75,7 +78,6 @@ class Search:
                      count_func: Callable | None = None) -> int:
         assert context.user_data is not None and update.effective_chat is not None
         offset, search_text = await Search.get_offset_and_search_query(update.callback_query, context.user_data)
-        context.user_data.clear()
         if not search_text:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_RETRY)
             return ConversationHandler.END
@@ -139,7 +141,8 @@ class Search:
 
     @staticmethod
     async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        assert update.effective_chat is not None
+        assert context.user_data is not None and update.effective_chat is not None
+        context.user_data.pop("search_query", None)
         await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CANCEL,
                                        reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
