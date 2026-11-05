@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
 from telegram.constants import ChatType, ParseMode
 from telegram.ext import ContextTypes
 
@@ -85,5 +85,6 @@ class Command:
     async def sendtoall(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Sends the broadcast introduction message to the admin user."""
         assert update.effective_chat is not None
-        await context.bot.send_message(update.effective_chat.id, text=const.SEND_YOUR_MESSAGE)
+        keyboard = ReplyKeyboardMarkup([[const.CANCEL]], one_time_keyboard=True, resize_keyboard=True)
+        await context.bot.send_message(update.effective_chat.id, text=const.SEND_YOUR_MESSAGE, reply_markup=keyboard)
         return 0

@@ -76,9 +76,8 @@ class Opinion:
         """
         assert context.user_data is not None
         assert update.message is not None and update.effective_chat is not None
-        user_id = context.user_data["user_id"]
-        message_id = context.user_data["message_id"]
-        context.user_data.clear()
+        user_id = context.user_data.pop("user_id")
+        message_id = context.user_data.pop("message_id")
         if update.message.text:
             await context.bot.send_message(user_id, update.message.text, reply_to_message_id=message_id)
         if update.message.voice:

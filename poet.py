@@ -15,7 +15,6 @@ class Poet:
         1) The user sends the /poets command.
         2) The user searches for poets by name.
         """
-        assert context.user_data is not None
         assert update.effective_chat is not None
         assert update.message is not None and update.message.from_user is not None
         poets = DataBase().get_poets(search_text)
@@ -27,9 +26,7 @@ class Poet:
 
         # If the user searches for poets and the search query results in a single poet, we display the poet details.
         if len(poets) == 1:
-            context.user_data['poet_id'] = poets[0]['id']
-            context.user_data['category_id'] = poets[0]['cat_id']
-            await Poet.poet_details(update, context)
+            await Poet.show_poet_details(update, context, poets[0]['id'], poets[0]['cat_id'])
             return
 
         buttons = list()
@@ -48,6 +45,17 @@ class Poet:
 
     @staticmethod
     async def poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles taps on a poet's name in the poets menu, or on a category in the poet details menu."""
+        query = update.callback_query
+        assert query is not None and query.data is not None
+        await query.answer()
+        poet_id = int(query.data.split(':')[1])
+        category_id = int(query.data.split(':')[2])
+        await Poet.show_poet_details(update, context, poet_id, category_id)
+
+    @staticmethod
+    async def show_poet_details(update: Update, context: ContextTypes.DEFAULT_TYPE, poet_id: int,
+                                category_id: int) -> None:
         """Displays information about a poet.
 
         This method can be called in three ways:
@@ -55,17 +63,6 @@ class Poet:
         2) In the poet details menu, the user taps on a category that has sub-categories.
         3) The user searches for poets by name and the search query results in a single poet.
         """
-        assert context.user_data is not None
-        if update.callback_query:
-            query = update.callback_query
-            await query.answer()
-            assert query.data is not None
-            poet_id = int(query.data.split(':')[1])
-            category_id = int(query.data.split(':')[2])
-        else:  # Uses user data. This is the third way this method is called.
-            poet_id = context.user_data['poet_id']
-            category_id = context.user_data['category_id']
-            context.user_data.clear()
         assert update.effective_message is not None and update.effective_message.text is not None
         assert update.effective_chat is not None
         parent_category_id = DataBase().get_parent_category_id(category_id)
@@ -95,6 +92,4 @@ class Poet:
 
         # If the poet's category has no sub-categories, we send the poems from that category.
         if not categories:
-            context.user_data['category_id'] = category_id
-            context.user_data['offset'] = 0
-            await Poem.category_poems(update, context)
+            await Poem.send_category_poems(update, context, category_id)

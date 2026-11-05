@@ -121,6 +121,8 @@ INTERNAL_ERROR = "متاسفانه مشکلی پیش آمد. لطفا کمی ب�
 
 SEND_YOUR_MESSAGE = "پیام مورد نظر خود را ارسال کنید."
 
+ADMIN_SEND_TO_ALL_CANCEL = "ارسال پیام همگانی لغو شد."
+
 ADMIN_SEND_TO_ALL_SUMMARY = """
 پیام شما ارسال شد.
 ارسال موفق: {sent}

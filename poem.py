@@ -82,22 +82,22 @@ class Poem:
 
     @staticmethod
     async def category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handles the previous and next buttons in category poems."""
+        query = update.callback_query
+        assert query is not None and query.data is not None
+        await query.answer()
+        category_id = int(query.data.split(':')[1])
+        offset = int(query.data.split(':')[2])
+        await Poem.send_category_poems(update, context, category_id, offset)
+
+    @staticmethod
+    async def send_category_poems(update: Update, context: ContextTypes.DEFAULT_TYPE, category_id: int,
+                                  offset: int = 0) -> None:
         """Displays the poems of a category.
 
         In the poet's menu, if the user taps on a category and that category has no sub-categories, we display the poems
         of that category. This method is also called when the user taps on previous and next buttons in category poems.
         """
-        if context.user_data:
-            category_id = context.user_data['category_id']
-            offset = context.user_data['offset']
-            context.user_data.clear()
-        else:
-            query = update.callback_query
-            assert query is not None and query.data is not None
-            await query.answer()
-            category_id = int(query.data.split(':')[1])
-            offset = int(query.data.split(':')[2])
-
         assert update.effective_message is not None and update.effective_chat is not None
         # Fetch one extra poem to know whether there is a next page without a separate count query.
         poems: list = DataBase().get_category_poems(category_id, offset, settings.POEM_PER_PAGE + 1)

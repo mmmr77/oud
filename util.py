@@ -1,3 +1,5 @@
+import html
+import re
 from typing import Any
 
 from persian_tools import digits
@@ -5,16 +7,26 @@ from telegram import InlineKeyboardButton
 
 import const
 
+# The bold tags Elasticsearch wraps around matched words in search highlights.
+_HIGHLIGHT_TAGS = re.compile(r'(</?b>)')
+
 
 class Util:
+    @staticmethod
+    def escape_highlight(text: str) -> str:
+        """HTML-escapes a search highlight while keeping the <b> tags that mark the matched words."""
+        return ''.join(part if _HIGHLIGHT_TAGS.fullmatch(part) else html.escape(part)
+                       for part in _HIGHLIGHT_TAGS.split(text))
+
     @staticmethod
     def trim_search_results(results: list[dict], offset: int) -> list:
         message = list()
         for i, result in enumerate(results):
             a: list[Any] = [i + 1 + offset, result['id'],
-                            digits.convert_to_fa(i + 1 + offset) + '. ' + result['title'] + ' - ' + result['name']]
+                            digits.convert_to_fa(i + 1 + offset) + '. ' + html.escape(result['title']) + ' - '
+                            + html.escape(result['name'])]
             try:
-                a[2] = a[2] + '\n' + result['text']
+                a[2] = a[2] + '\n' + Util.escape_highlight(result['text'])
             except KeyError:
                 pass
             if len(a[2]) + sum(map(lambda x: len(x[2]), message)) + 2 * len(message) <= 4096:
@@ -54,7 +66,8 @@ class Util:
 
     @staticmethod
     def format_poem(poem: str, url: str, title: str, poet: str, bot_username: str) -> str:
-        return const.POEM.format(poem=poem, url=url, title=title, poet=poet, username=bot_username)
+        return const.POEM.format(poem=html.escape(poem), url=html.escape(url), title=html.escape(title),
+                                 poet=html.escape(poet), username=bot_username)
 
     @staticmethod
     def break_long_poems(poem_text: list[str], poem_info: dict, bot_username: str) -> list:

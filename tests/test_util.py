@@ -57,3 +57,16 @@ def test_long_verse_is_split_and_keeps_its_separator():
     assert len(parts) == 3
     assert parts[0].endswith(".\n") and parts[1].endswith("\n\n")
     assert "".join(parts).replace("\n", "") == long_text + "x"
+
+
+def test_format_poem_escapes_html_in_poem_data():
+    message = Util.format_poem("a < b & c", "https://ganjoor.net/x?a=1&b=2", "<title>", "poet & co", "oud_bot")
+    assert "a &lt; b &amp; c" in message
+    assert '<a href="https://ganjoor.net/x?a=1&amp;b=2">&lt;title&gt;</a>' in message
+    assert "poet &amp; co" in message
+
+
+def test_search_results_are_escaped_but_keep_the_highlight_tags():
+    results = [{"id": 1, "title": "A & B", "name": "<poet>", "text": "x < y <b>عشق</b> &"}]
+    message = Util.trim_search_results(results, 0)
+    assert message[0][2].endswith("A &amp; B - &lt;poet&gt;\nx &lt; y <b>عشق</b> &amp;")
