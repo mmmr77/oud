@@ -88,9 +88,11 @@ class Application:
 
         poem_handler = CallbackQueryHandler(Poem.show_poem_by_id, r'^poem:\d+$')
 
-        send_to_all_handler = ConversationHandler(entry_points=[CommandHandler('sendtoall', Command.sendtoall)],
-                                                  states={0: [MessageHandler(filters.TEXT, Admin.send_to_all)]},
-                                                  fallbacks=[])
+        send_to_all_handler = ConversationHandler(
+            entry_points=[CommandHandler('sendtoall', Command.sendtoall)],
+            states={0: [MessageHandler(filters.TEXT & ~filters.COMMAND & ~filters.Regex(rf'^{const.CANCEL}$'),
+                                       Admin.send_to_all)]},
+            fallbacks=[MessageHandler(filters.Regex(rf'^{const.CANCEL}$'), Admin.cancel)])
 
         recitation_saver_audio_handler = MessageHandler(filters.AUDIO & filters.Chat(settings.OUD_FILES_CHANNEL_ID),
                                                         Recitation.add_recitation_file_id_to_db)

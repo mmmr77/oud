@@ -3,7 +3,7 @@ import functools
 import logging
 from collections.abc import Callable
 
-from telegram import Update
+from telegram import ReplyKeyboardRemove, Update
 from telegram.error import Forbidden, RetryAfter, TelegramError
 from telegram.ext import ContextTypes, ConversationHandler
 
@@ -72,5 +72,13 @@ class Admin:
 
         summary = const.ADMIN_SEND_TO_ALL_SUMMARY.format(sent=counts['sent'], blocked=counts['blocked'],
                                                          failed=counts['failed'])
-        await context.bot.send_message(update.effective_chat.id, summary)
+        await context.bot.send_message(update.effective_chat.id, summary, reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+
+    @staticmethod
+    async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Cancels the broadcast conversation."""
+        assert update.effective_chat is not None
+        await context.bot.send_message(update.effective_chat.id, const.ADMIN_SEND_TO_ALL_CANCEL,
+                                       reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
