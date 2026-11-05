@@ -39,3 +39,10 @@ def test_paging_earlier_results_keeps_the_pending_search_query(monkeypatch):
 
     search_func.assert_called_once_with("عشق", 8)
     assert context.user_data == {"search_query": "حافظ"}
+
+
+def test_search_poet_with_an_invalid_query_length_ends_the_conversation():
+    context = make_context({"search_query": "ab"})
+    state = asyncio.run(Search.search_poet(MagicMock(), context))
+    assert state == ConversationHandler.END
+    assert context.bot.send_message.call_args.kwargs["text"] == const.SEARCH_CHARACTERS_NOT_VALID

@@ -43,7 +43,7 @@ class Search:
         return await Search.search(update, context, ElasticSearchDB().perform_search, 'srch')
 
     @staticmethod
-    async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int | None:
+    async def search_poet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         assert context.user_data is not None and update.effective_chat is not None
         search_text = context.user_data.pop("search_query", None)
         if not search_text:
@@ -53,7 +53,7 @@ class Search:
         if len(search_text) < 3 or len(search_text) > 100:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=const.SEARCH_CHARACTERS_NOT_VALID,
                                            reply_markup=ReplyKeyboardRemove())
-            return
+            return ConversationHandler.END
         await Poet.poets_menu(update, context, search_text)
         return ConversationHandler.END
 
