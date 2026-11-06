@@ -17,21 +17,14 @@ from util import Util
 
 logger = logging.getLogger(__name__)
 
-# Telegram Stars amounts offered by the donate buttons; nothing else is invoiced or accepted at checkout.
 DONATION_AMOUNTS = (1, 5, 10, 20, 50, 100)
-STARS_CURRENCY = "XTR"
 
 
 class Donate:
     @staticmethod
-    def build_payload(amount: int) -> str:
-        return f"donation:{amount}"
-
-    @staticmethod
     def is_valid_checkout(currency: str, total_amount: int, payload: str) -> bool:
         """Checks that a checkout is for one of the offered amounts and matches the invoice the bot sent."""
-        return (currency == STARS_CURRENCY and total_amount in DONATION_AMOUNTS
-                and payload == Donate.build_payload(total_amount))
+        return currency == "XTR" and total_amount in DONATION_AMOUNTS and payload == f"donation:{total_amount}"
 
     @staticmethod
     async def donate_intro(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -53,15 +46,14 @@ class Donate:
             await query.answer(const.DONATE_INVALID_AMOUNT, show_alert=True)
             return
         await query.answer()
-        prices = [LabeledPrice(label=convert_to_fa(const.DONATE_BUTTON.format(amount=amount)), amount=amount)]
         await context.bot.send_invoice(
             chat_id=update.effective_chat.id,
             title=const.DONATE_INVOICE_TITLE,
             description=const.DONATE_INVOICE_DESCRIPTION,
-            payload=Donate.build_payload(amount),
+            payload=f"donation:{amount}",
             provider_token="",
-            currency=STARS_CURRENCY,
-            prices=prices,
+            currency="XTR",
+            prices=[LabeledPrice(label=convert_to_fa(const.DONATE_BUTTON.format(amount=amount)), amount=amount)],
         )
 
     @staticmethod

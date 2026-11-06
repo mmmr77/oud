@@ -13,19 +13,19 @@ from donation import Donate
 
 
 def test_checkout_for_an_offered_amount_is_valid():
-    assert Donate.is_valid_checkout("XTR", 10, Donate.build_payload(10))
+    assert Donate.is_valid_checkout("XTR", 10, "donation:10")
 
 
 def test_checkout_for_an_amount_not_offered_is_rejected():
-    assert not Donate.is_valid_checkout("XTR", 7, Donate.build_payload(7))
+    assert not Donate.is_valid_checkout("XTR", 7, "donation:7")
 
 
 def test_checkout_whose_payload_does_not_match_the_amount_is_rejected():
-    assert not Donate.is_valid_checkout("XTR", 1, Donate.build_payload(100))
+    assert not Donate.is_valid_checkout("XTR", 1, "donation:100")
 
 
 def test_checkout_in_another_currency_is_rejected():
-    assert not Donate.is_valid_checkout("USD", 10, Donate.build_payload(10))
+    assert not Donate.is_valid_checkout("USD", 10, "donation:10")
 
 
 def test_no_invoice_is_sent_for_an_amount_not_offered():
@@ -53,7 +53,7 @@ def test_invoice_is_in_stars_for_the_chosen_amount():
     invoice = context.bot.send_invoice.call_args.kwargs
     assert invoice["currency"] == "XTR"
     assert [price.amount for price in invoice["prices"]] == [50]
-    assert invoice["payload"] == Donate.build_payload(50)
+    assert invoice["payload"] == "donation:50"
 
 
 def test_successful_payments_are_not_swallowed_by_open_conversations():
