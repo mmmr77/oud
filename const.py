@@ -200,4 +200,12 @@ DONATE = """
 از حمایت‌تان متشکرم! ❤️
 """
 
+DONATE_BUTTON = "{amount} ستاره ⭐️"
+
+DONATE_INVOICE_TITLE = "حمایت از ربات عود"
+
+DONATE_INVOICE_DESCRIPTION = "حمایت با ستاره‌های تلگرام"
+
+DONATE_INVALID_AMOUNT = "مبلغ انتخاب شده معتبر نیست. لطفا دوباره از دستور /donate استفاده کنید."
+
 __all__ = ("ABOUT", "OPINION", "HELP", "FAQ")
