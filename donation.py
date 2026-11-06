@@ -1,10 +1,18 @@
+import logging
+from datetime import UTC, datetime
+
 from persian_tools.digits import convert_to_fa
 from telegram import InlineKeyboardMarkup, LabeledPrice, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
+from telegram.helpers import mention_html
 
 import const
+from config import settings
+from db import DataBase
 from util import Util
+
+logger = logging.getLogger(__name__)
 
 # Telegram Stars amounts offered by the donate buttons; nothing else is invoiced or accepted at checkout.
 DONATION_AMOUNTS = (1, 5, 10, 20, 50, 100)
@@ -64,6 +72,21 @@ class Donate:
 
     @staticmethod
     async def donate_stars_successful(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        # TODO: Store in database.
-        assert update.effective_user is not None
-        await context.bot.send_message(update.effective_user.id, "ممنون از حمایت‌تان!")
+        """Records the donation, thanks the user and notifies the admin."""
+        assert update.message is not None and update.message.successful_payment is not None
+        assert update.effective_user is not None and update.effective_chat is not None
+        payment = update.message.successful_payment
+        user = update.effective_user
+        # The user has already paid, so a failure to record the donation must not stop the thanks; the charge id is
+        # logged so the donation can still be refunded or recorded by hand.
+        try:
+            DataBase().insert_donation(user.id, payment.total_amount, payment.currency,
+                                       payment.telegram_payment_charge_id, datetime.now(UTC))
+        except Exception:
+            logger.exception("Failed to record donation %s of user %d", payment.telegram_payment_charge_id, user.id)
+        await context.bot.send_message(update.effective_chat.id, const.DONATE_THANKS)
+
+        text = const.DONATION_TO_ADMIN.format(amount=convert_to_fa(payment.total_amount),
+                                              user=mention_html(user.id, user.first_name),
+                                              username=Util.create_username_with_at(user.username))
+        await context.bot.send_message(settings.ADMIN_CHAT_ID, text, parse_mode=ParseMode.HTML)

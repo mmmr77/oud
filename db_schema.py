@@ -73,6 +73,20 @@ class Opinion(Base):
     creation_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class Donation(Base):
+    __tablename__ = "donation"
+    __table_args__ = (Index("ix_donation_user_id", "user_id"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False, autoincrement=True)
+    # Not a foreign key: users who donate from a group may never have opened a private chat with the bot.
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str] = mapped_column(Text, nullable=False)
+    # Needed to refund the payment.
+    telegram_payment_charge_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    creation_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class Omen(Base):
     __tablename__ = "omen"
     __table_args__ = (Index("ix_omen_poem_id", "poem_id"),)

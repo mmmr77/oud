@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 from telegram.ext import ConversationHandler, MessageHandler, filters
 
 import const
+import donation
 from app import Application
 from donation import Donate
 
@@ -61,3 +62,35 @@ def test_successful_payments_are_not_swallowed_by_open_conversations():
     first_conversation_index = next(i for i, handler in enumerate(handlers)
                                     if isinstance(handler, ConversationHandler))
     assert payment_index < first_conversation_index
+
+
+def run_successful_payment(monkeypatch, database: MagicMock) -> MagicMock:
+    monkeypatch.setattr(donation, "DataBase", lambda: database)
+    update = MagicMock()
+    update.effective_user.id = 42
+    update.effective_user.first_name = "Ali"
+    update.effective_user.username = None
+    update.effective_chat.id = 42
+    payment = update.message.successful_payment
+    payment.total_amount = 10
+    payment.currency = "XTR"
+    payment.telegram_payment_charge_id = "charge-1"
+    context = MagicMock()
+    context.bot.send_message = AsyncMock()
+    asyncio.run(Donate.donate_stars_successful(update, context))
+    return context
+
+
+def test_successful_payment_is_recorded_with_its_charge_id(monkeypatch):
+    database = MagicMock()
+    context = run_successful_payment(monkeypatch, database)
+    args = database.insert_donation.call_args.args
+    assert args[:4] == (42, 10, "XTR", "charge-1")
+    assert context.bot.send_message.call_args_list[0].args == (42, const.DONATE_THANKS)
+
+
+def test_user_is_thanked_even_if_recording_the_donation_fails(monkeypatch):
+    database = MagicMock()
+    database.insert_donation.side_effect = RuntimeError("database is down")
+    context = run_successful_payment(monkeypatch, database)
+    assert context.bot.send_message.call_args_list[0].args == (42, const.DONATE_THANKS)

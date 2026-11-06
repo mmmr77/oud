@@ -6,7 +6,7 @@ from sqlalchemy import Executable, create_engine, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from config import settings
-from db_schema import Cat, Fav, Omen, Opinion, Poem, PoemSnd, Poet, Song, User, Verse
+from db_schema import Cat, Donation, Fav, Omen, Opinion, Poem, PoemSnd, Poet, Song, User, Verse
 from singleton import Singleton
 
 
@@ -89,6 +89,13 @@ class DataBase(metaclass=Singleton):
     def insert_opinion(self, user_id: int, message: str | None, creation_datetime: datetime) -> None:
         self._execute_write(insert(Opinion).values(user_id=user_id, message=message,
                                                    creation_datetime=creation_datetime))
+
+    def insert_donation(self, user_id: int, amount: int, currency: str, telegram_payment_charge_id: str,
+                        creation_datetime: datetime) -> None:
+        self._execute_write(insert(Donation).values(user_id=user_id, amount=amount, currency=currency,
+                                                    telegram_payment_charge_id=telegram_payment_charge_id,
+                                                    creation_datetime=creation_datetime)
+                            .on_conflict_do_nothing(index_elements=['telegram_payment_charge_id']))
 
     def upsert_user_activity(self, user_id: int, first_name: str | None, last_name: str | None, username: str | None,
                              seen_at: datetime) -> None:
