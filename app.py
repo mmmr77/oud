@@ -11,6 +11,7 @@ from telegram.ext import (
     ConversationHandler,
     InlineQueryHandler,
     MessageHandler,
+    PreCheckoutQueryHandler,
     TypeHandler,
     filters,
 )
@@ -20,6 +21,7 @@ from activity_metrics import record_user_activity, refresh_active_user_metrics, 
 from admin import Admin
 from command import Command
 from config import settings
+from donation import Donate
 from elastic_sync import sync as sync_elasticsearch
 from favorite import Favorite
 from inline_search import InlineSearch
@@ -136,6 +138,12 @@ class Application:
 
         search_command_handler = CommandHandler('search', Command.search)
 
+        donate_handler = CommandHandler('donate', Donate.donate_intro)
+        donate_invoice_handler = CallbackQueryHandler(Donate.donate_stars, r'^donate:\d+$')
+        donate_pre_checkout_handler = PreCheckoutQueryHandler(Donate.donate_stars_pre_checkout)
+        donate_successful_handler = MessageHandler(filters.SUCCESSFUL_PAYMENT, Donate.donate_stars_successful)
+        refund_handler = CommandHandler('refund', Donate.refund)
+
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
 
         search_message_handler = ConversationHandler(
@@ -153,13 +161,16 @@ class Application:
 
         self.application.add_handler(activity_handler, group=-1)
 
+        # Payments come first: in a group, the first matching handler wins, and the catch-all states of an open
+        # conversation (e.g. opinion) would otherwise swallow the successful payment message.
         self.application.add_handlers(
-            [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
-             send_to_all_handler, recitation_saver_audio_handler, search_query_handler, recitation_handler,
-             favorite_add_handler, favorite_remove_handler, favorite_poems_handler, favorite_poems_query_handler,
-             hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler, song_saver_audio_handler,
-             song_handler, recitations_handler, songs_handler, reply_opinion_handler, search_title_query_handler,
-             search_command_handler, commands_handler, search_message_handler, inline_search_handler])
+            [donate_pre_checkout_handler, donate_successful_handler, start_handler, opinion_handler, poets_handler,
+             poet_details_handler, category_handler, poem_handler, send_to_all_handler, recitation_saver_audio_handler,
+             search_query_handler, recitation_handler, favorite_add_handler, favorite_remove_handler,
+             favorite_poems_handler, favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler,
+             song_saver_data_handler, song_saver_audio_handler, song_handler, recitations_handler, songs_handler,
+             reply_opinion_handler, search_title_query_handler, search_command_handler, donate_handler,
+             donate_invoice_handler, refund_handler, commands_handler, search_message_handler, inline_search_handler])
 
     def add_jobs(self) -> None:
         assert self.application.job_queue is not None

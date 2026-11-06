@@ -62,3 +62,7 @@ def test_search_in_group_points_to_inline_search():
     assert "@oud_bot" in sent["text"]
     button = sent["reply_markup"].inline_keyboard[0][0]
     assert button.switch_inline_query_current_chat == ""
+
+
+def test_paysupport_is_answered_as_a_general_command():
+    assert Command.get_general_commands_response("paysupport") == const.PAYSUPPORT
