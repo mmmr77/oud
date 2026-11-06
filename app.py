@@ -142,6 +142,7 @@ class Application:
         donate_invoice_handler = CallbackQueryHandler(Donate.donate_stars, r'^donate:\d+$')
         donate_pre_checkout_handler = PreCheckoutQueryHandler(Donate.donate_stars_pre_checkout)
         donate_successful_handler = MessageHandler(filters.SUCCESSFUL_PAYMENT, Donate.donate_stars_successful)
+        refund_handler = CommandHandler('refund', Donate.refund)
 
         commands_handler = MessageHandler(filters.COMMAND, Command.general_command)
 
@@ -169,7 +170,7 @@ class Application:
              favorite_poems_handler, favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler,
              song_saver_data_handler, song_saver_audio_handler, song_handler, recitations_handler, songs_handler,
              reply_opinion_handler, search_title_query_handler, search_command_handler, donate_handler,
-             donate_invoice_handler, commands_handler, search_message_handler, inline_search_handler])
+             donate_invoice_handler, refund_handler, commands_handler, search_message_handler, inline_search_handler])
 
     def add_jobs(self) -> None:
         assert self.application.job_queue is not None

@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column("currency", sa.Text(), nullable=False),
         sa.Column("telegram_payment_charge_id", sa.Text(), nullable=False),
         sa.Column("creation_datetime", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("refunded_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_donation")),
         sa.UniqueConstraint("telegram_payment_charge_id", name=op.f("uq_donation_telegram_payment_charge_id")),
     )

@@ -97,6 +97,15 @@ class DataBase(metaclass=Singleton):
                                                     creation_datetime=creation_datetime)
                             .on_conflict_do_nothing(index_elements=['telegram_payment_charge_id']))
 
+    def get_donation(self, telegram_payment_charge_id: str) -> dict | None:
+        return self._fetch_one(select(Donation.user_id, Donation.amount, Donation.refunded_at)
+                               .where(Donation.telegram_payment_charge_id == telegram_payment_charge_id))
+
+    def mark_donation_refunded(self, telegram_payment_charge_id: str, refunded_at: datetime) -> None:
+        self._execute_write(update(Donation)
+                            .where(Donation.telegram_payment_charge_id == telegram_payment_charge_id)
+                            .values(refunded_at=refunded_at))
+
     def upsert_user_activity(self, user_id: int, first_name: str | None, last_name: str | None, username: str | None,
                              seen_at: datetime) -> None:
         statement = insert(User).values(id=user_id, first_name=first_name, last_name=last_name, username=username,

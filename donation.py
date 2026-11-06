@@ -1,13 +1,16 @@
+import html
 import logging
 from datetime import UTC, datetime
 
 from persian_tools.digits import convert_to_fa
 from telegram import InlineKeyboardMarkup, LabeledPrice, Update
 from telegram.constants import ParseMode
+from telegram.error import TelegramError
 from telegram.ext import ContextTypes
 from telegram.helpers import mention_html
 
 import const
+from admin import admin
 from config import settings
 from db import DataBase
 from util import Util
@@ -88,5 +91,32 @@ class Donate:
 
         text = const.DONATION_TO_ADMIN.format(amount=convert_to_fa(payment.total_amount),
                                               user=mention_html(user.id, user.first_name),
-                                              username=Util.create_username_with_at(user.username))
+                                              username=Util.create_username_with_at(user.username),
+                                              charge_id=html.escape(payment.telegram_payment_charge_id))
         await context.bot.send_message(settings.ADMIN_CHAT_ID, text, parse_mode=ParseMode.HTML)
+
+    @staticmethod
+    @admin
+    async def refund(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Refunds a donation, given its telegram_payment_charge_id (included in the admin's donation notice)."""
+        assert update.effective_chat is not None
+        chat_id = update.effective_chat.id
+        if not context.args or len(context.args) != 1:
+            await context.bot.send_message(chat_id, const.REFUND_USAGE)
+            return
+        charge_id = context.args[0]
+        donation = DataBase().get_donation(charge_id)
+        if donation is None:
+            await context.bot.send_message(chat_id, const.REFUND_NOT_FOUND)
+            return
+        if donation["refunded_at"] is not None:
+            await context.bot.send_message(chat_id, const.REFUND_ALREADY_REFUNDED)
+            return
+        try:
+            await context.bot.refund_star_payment(donation["user_id"], charge_id)
+        except TelegramError as e:
+            await context.bot.send_message(chat_id, const.REFUND_FAILED.format(error=e.message))
+            return
+        DataBase().mark_donation_refunded(charge_id, datetime.now(UTC))
+        await context.bot.send_message(chat_id, const.REFUND_DONE.format(amount=convert_to_fa(donation["amount"]),
+                                                                         user_id=donation["user_id"]))

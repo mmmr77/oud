@@ -85,6 +85,7 @@ class Donation(Base):
     # Needed to refund the payment.
     telegram_payment_charge_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     creation_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Omen(Base):

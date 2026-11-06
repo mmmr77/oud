@@ -212,7 +212,20 @@ DONATE_THANKS = "ممنون از حمایت‌تان! ❤️"
 DONATION_TO_ADMIN = """
 یک حمایت {amount} ستاره‌ای از {user}
 {username}
+
+بازگشت وجه با:
+<code>/refund {charge_id}</code>
 """
+
+REFUND_USAGE = "نحوه‌ی استفاده: /refund شناسه‌ی_پرداخت"
+
+REFUND_NOT_FOUND = "پرداختی با این شناسه یافت نشد."
+
+REFUND_ALREADY_REFUNDED = "وجه این پرداخت قبلا بازگردانده شده است."
+
+REFUND_FAILED = "بازگشت وجه ناموفق بود: {error}"
+
+REFUND_DONE = "{amount} ستاره به کاربر {user_id} بازگردانده شد."
 
 DONATE_INVALID_AMOUNT = "مبلغ انتخاب شده معتبر نیست. لطفا دوباره از دستور /donate استفاده کنید."
 
