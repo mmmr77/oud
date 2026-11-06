@@ -160,14 +160,16 @@ class Application:
 
         self.application.add_handler(activity_handler, group=-1)
 
+        # Payments come first: in a group, the first matching handler wins, and the catch-all states of an open
+        # conversation (e.g. opinion) would otherwise swallow the successful payment message.
         self.application.add_handlers(
-            [start_handler, opinion_handler, poets_handler, poet_details_handler, category_handler, poem_handler,
-             send_to_all_handler, recitation_saver_audio_handler, search_query_handler, recitation_handler,
-             favorite_add_handler, favorite_remove_handler, favorite_poems_handler, favorite_poems_query_handler,
-             hafez_omen_intro_handler, hafez_show_omen_handler, song_saver_data_handler, song_saver_audio_handler,
-             song_handler, recitations_handler, songs_handler, reply_opinion_handler, search_title_query_handler,
-             search_command_handler, donate_handler, donate_invoice_handler, donate_pre_checkout_handler,
-             donate_successful_handler, commands_handler, search_message_handler, inline_search_handler])
+            [donate_pre_checkout_handler, donate_successful_handler, start_handler, opinion_handler, poets_handler,
+             poet_details_handler, category_handler, poem_handler, send_to_all_handler, recitation_saver_audio_handler,
+             search_query_handler, recitation_handler, favorite_add_handler, favorite_remove_handler,
+             favorite_poems_handler, favorite_poems_query_handler, hafez_omen_intro_handler, hafez_show_omen_handler,
+             song_saver_data_handler, song_saver_audio_handler, song_handler, recitations_handler, songs_handler,
+             reply_opinion_handler, search_title_query_handler, search_command_handler, donate_handler,
+             donate_invoice_handler, commands_handler, search_message_handler, inline_search_handler])
 
     def add_jobs(self) -> None:
         assert self.application.job_queue is not None

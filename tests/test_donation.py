@@ -1,7 +1,10 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
+from telegram.ext import ConversationHandler, MessageHandler, filters
+
 import const
+from app import Application
 from donation import Donate
 
 
@@ -47,3 +50,14 @@ def test_invoice_is_in_stars_for_the_chosen_amount():
     assert invoice["currency"] == "XTR"
     assert [price.amount for price in invoice["prices"]] == [50]
     assert invoice["payload"] == Donate.build_payload(50)
+
+
+def test_successful_payments_are_not_swallowed_by_open_conversations():
+    application = MagicMock()
+    Application.add_handlers(MagicMock(application=application))
+    handlers = application.add_handlers.call_args.args[0]
+    payment_index = next(i for i, handler in enumerate(handlers) if isinstance(handler, MessageHandler)
+                         and handler.filters is filters.SUCCESSFUL_PAYMENT)
+    first_conversation_index = next(i for i, handler in enumerate(handlers)
+                                    if isinstance(handler, ConversationHandler))
+    assert payment_index < first_conversation_index
