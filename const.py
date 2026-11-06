@@ -195,7 +195,9 @@ DONATE = """
 
 🔗 <a href="https://hamibash.com/oud">لینک حمایت مالی</a>
 
+همچنین می‌توانید با استفاده از دکمه‌های زیر، با ستاره‌های تلگرام، حمایت نمایید.
+
 از حمایت‌تان متشکرم! ❤️
 """
 
-__all__ = ("ABOUT", "OPINION", "HELP", "FAQ", "DONATE")
+__all__ = ("ABOUT", "OPINION", "HELP", "FAQ")
